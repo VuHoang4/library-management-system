@@ -1,160 +1,193 @@
 # THIẾT KẾ CƠ SỞ DỮ LIỆU
 (Database Design)
 
-Hệ thống sử dụng cơ sở dữ liệu quan hệ để quản lý thông tin sách, người dùng và lịch sử mượn sách.
+Hệ thống sử dụng **cơ sở dữ liệu quan hệ** để quản lý thông tin người dùng, sách và các hoạt động mượn trả trong thư viện.
 
 ---
 
-# 1. Danh sách bảng
+# 1. Danh sách các bảng
 
-## 1. users
+## 1. Bảng roles
+Lưu các vai trò của người dùng trong hệ thống.
 
-Lưu thông tin người dùng hệ thống.
+| Cột | Mô tả |
+|----|----|
+| id (PK) | ID vai trò |
+| name | Tên vai trò |
 
-Columns
+### Giá trị của name
 
-id (PK)
-name
-email
-password
-role
-created_at
-
-Role values
-
-ADMIN
-LIBRARIAN
-READER
+- ADMIN (Quản trị viên)
+- LIBRARIAN (Thủ thư)
+- READER (Độc giả)
 
 ---
 
-## 2. books
+## 2. Bảng users
+Lưu thông tin người dùng trong hệ thống.
 
-Lưu thông tin sách.
-
-id (PK)
-title
-author_id
-category_id
-publisher_id
-isbn
-quantity
-available_quantity
-
----
-
-## 3. authors
-
-id (PK)
-name
-bio
+| Cột | Mô tả |
+|----|----|
+| id (PK) | ID người dùng |
+| name | Tên người dùng |
+| email | Email đăng nhập |
+| password | Mật khẩu |
+| role_id (FK) | ID vai trò |
+| created_at | Thời gian tạo |
+| updated_at | Thời gian cập nhật |
 
 ---
 
-## 4. categories
+## 3. Bảng authors
+Lưu thông tin tác giả.
 
-id (PK)
-name
-description
-
----
-
-## 5. publishers
-
-id (PK)
-name
+| Cột | Mô tả |
+|----|----|
+| id (PK) | ID tác giả |
+| name | Tên tác giả |
+| bio | Tiểu sử |
 
 ---
 
-## 6. borrow_records
+## 4. Bảng categories
+Lưu danh mục sách.
 
-Lưu thông tin mượn sách.
-
-id (PK)
-user_id (FK)
-book_id (FK)
-borrow_date
-due_date
-return_date
-status
-
-status values
-
-BORROWED
-RETURNED
-OVERDUE
+| Cột | Mô tả |
+|----|----|
+| id (PK) | ID danh mục |
+| name | Tên danh mục |
+| description | Mô tả |
 
 ---
 
-## 7. reservations
+## 5. Bảng publishers
+Lưu thông tin nhà xuất bản.
 
+| Cột | Mô tả |
+|----|----|
+| id (PK) | ID nhà xuất bản |
+| name | Tên nhà xuất bản |
+
+---
+
+## 6. Bảng books
+Lưu thông tin các cuốn sách trong thư viện.
+
+| Cột | Mô tả |
+|----|----|
+| id (PK) | ID sách |
+| title | Tên sách |
+| author_id (FK) | ID tác giả |
+| category_id (FK) | ID danh mục |
+| publisher_id (FK) | ID nhà xuất bản |
+| isbn | Mã ISBN của sách |
+| quantity | Tổng số sách |
+| available_quantity | Số lượng sách còn có thể mượn |
+| created_at | Thời gian tạo |
+| updated_at | Thời gian cập nhật |
+
+---
+
+## 7. Bảng borrow_records
+Lưu thông tin mượn và trả sách.
+
+| Cột | Mô tả |
+|----|----|
+| id (PK) | ID bản ghi mượn |
+| user_id (FK) | ID người mượn |
+| book_id (FK) | ID sách |
+| borrow_date | Ngày mượn |
+| due_date | Hạn trả |
+| return_date | Ngày trả |
+| status | Trạng thái mượn |
+| created_at | Thời gian tạo |
+
+### Giá trị của status
+
+- BORROWED (Đang mượn)
+- RETURNED (Đã trả)
+- OVERDUE (Quá hạn)
+
+---
+
+## 8. Bảng reservations
 Lưu thông tin đặt trước sách.
 
-id (PK)
-user_id
-book_id
-reservation_date
-status
+| Cột | Mô tả |
+|----|----|
+| id (PK) | ID đặt trước |
+| user_id (FK) | ID người đặt |
+| book_id (FK) | ID sách |
+| reservation_date | Ngày đặt |
+| status | Trạng thái |
 
-status values
+### Giá trị của status
 
-PENDING
-APPROVED
-CANCELLED
-
----
-
-## 8. fines
-
-Lưu thông tin phí phạt.
-
-id (PK)
-borrow_id
-amount
-status
-paid_at
-
-status values
-
-UNPAID
-PAID
+- PENDING (Đang chờ xử lý)
+- APPROVED (Đã duyệt)
+- CANCELLED (Đã hủy)
 
 ---
 
-## 9. notifications
+## 9. Bảng fines
+Lưu thông tin phí phạt do trả sách trễ.
 
-Lưu thông báo hệ thống.
+| Cột | Mô tả |
+|----|----|
+| id (PK) | ID phí phạt |
+| borrow_id (FK) | ID bản ghi mượn |
+| amount | Số tiền phạt |
+| status | Trạng thái thanh toán |
+| paid_at | Thời gian thanh toán |
 
-id (PK)
-user_id
-message
-is_read
-created_at
+### Giá trị của status
+
+- UNPAID (Chưa thanh toán)
+- PAID (Đã thanh toán)
 
 ---
 
 # 2. Quan hệ giữa các bảng
 
-users
-1 - n borrow_records
+Quan hệ giữa các bảng trong hệ thống:
 
-books
-1 - n borrow_records
+- roles **1 - n** users  
+  → Một vai trò có thể có nhiều người dùng.
 
-users
-1 - n reservations
+- users **1 - n** borrow_records  
+  → Một người dùng có thể mượn nhiều sách.
 
-books
-1 - n reservations
+- books **1 - n** borrow_records  
+  → Một cuốn sách có thể được mượn nhiều lần.
 
-borrow_records
-1 - 1 fines
+- users **1 - n** reservations  
+  → Một người dùng có thể đặt trước nhiều sách.
 
-authors
-1 - n books
+- books **1 - n** reservations  
+  → Một cuốn sách có thể có nhiều lượt đặt trước.
 
-categories
-1 - n books
+- borrow_records **1 - 1** fines  
+  → Một lần mượn có thể phát sinh một phí phạt.
 
-publishers
-1 - n books
+- authors **1 - n** books  
+  → Một tác giả có thể viết nhiều sách.
+
+- categories **1 - n** books  
+  → Một danh mục có thể chứa nhiều sách.
+
+- publishers **1 - n** books  
+  → Một nhà xuất bản có thể xuất bản nhiều sách.
+
+---
+
+# 3. Tổng số bảng
+
+| Nhóm | Bảng |
+|----|----|
+| Quản lý người dùng | roles, users |
+| Quản lý sách | books, authors, categories, publishers |
+| Nghiệp vụ thư viện | borrow_records, reservations, fines |
+
+Tổng số bảng: **9 bảng**
+
+→ Phù hợp với yêu cầu đề bài **6 – 10 bảng**
