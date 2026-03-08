@@ -190,4 +190,3 @@ Quan hệ giữa các bảng trong hệ thống:
 
 Tổng số bảng: **9 bảng**
 
-→ Phù hợp với yêu cầu đề bài **6 – 10 bảng**
