@@ -140,13 +140,13 @@ Tổng tính năng: 18
 
 # 7. Các chức năng mở rộng (Optional)
 
-Option 1
+Phương án 1
 - Thống kê sách được mượn nhiều
 
-Option 2
+Phương án 2
 - Gửi email nhắc trả sách
 
-Option 3
+Phương án 3
 - Upload ảnh bìa sách
 
 Option 4
