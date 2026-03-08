@@ -149,5 +149,5 @@ Phương án 2
 Phương án 3
 - Upload ảnh bìa sách
 
-Option 4
+Phương án 4
 - Dashboard biểu đồ thống kê
