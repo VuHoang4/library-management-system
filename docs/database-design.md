@@ -1,192 +1,282 @@
 # THIẾT KẾ CƠ SỞ DỮ LIỆU
 (Database Design)
 
-Hệ thống sử dụng **cơ sở dữ liệu quan hệ** để quản lý thông tin người dùng, sách và các hoạt động mượn trả trong thư viện.
+## 1. Giới thiệu
+
+Hệ thống **Library Management System** sử dụng cơ sở dữ liệu quan hệ (Relational Database) 
+để quản lý thông tin:
+
+- Người dùng hệ thống
+- Sách và thông tin xuất bản
+- Hoạt động mượn/trả sách
+- Đặt trước sách
+- Phí phạt
+- Cấu hình hệ thống thư viện
+
+Database được thiết kế nhằm đảm bảo:
+
+- Tính toàn vẹn dữ liệu
+- Khả năng mở rộng
+- Dễ dàng truy vấn thống kê
 
 ---
 
-# 1. Danh sách các bảng
+# 2. Tổng quan các bảng
 
-## 1. Bảng roles
-Lưu các vai trò của người dùng trong hệ thống.
+Hệ thống gồm **11 bảng chính**
 
-| Cột | Mô tả |
-|----|----|
-| id (PK) | ID vai trò |
-| name | Tên vai trò |
+## Nhóm quản lý người dùng
+
+| Bảng | Mô tả |
+|-----|------|
+roles | Danh sách vai trò trong hệ thống |
+users | Thông tin người dùng |
+
+---
+
+## Nhóm quản lý sách
+
+| Bảng | Mô tả |
+|-----|------|
+authors | Thông tin tác giả |
+categories | Danh mục sách |
+publishers | Nhà xuất bản |
+books | Thông tin sách |
+
+---
+
+## Nhóm nghiệp vụ thư viện
+
+| Bảng | Mô tả |
+|-----|------|
+borrow_records | Lịch sử mượn và trả sách |
+reservations | Đặt trước sách |
+fines | Phí phạt |
+
+---
+
+## Nhóm cấu hình hệ thống
+
+| Bảng | Mô tả |
+|-----|------|
+system_settings | Cấu hình quy định thư viện |
+notifications | Thông báo hệ thống |
+
+---
+
+# 3. Chi tiết các bảng
+
+---
+
+# 3.1 Table: roles
+
+Lưu các vai trò của người dùng.
+
+| Column | Description |
+|------|-------------|
+id (PK) | ID vai trò |
+name | Tên vai trò |
 
 ### Giá trị của name
-
-- ADMIN (Quản trị viên)
-- LIBRARIAN (Thủ thư)
-- READER (Độc giả)
-
----
-
-## 2. Bảng users
-Lưu thông tin người dùng trong hệ thống.
-
-| Cột | Mô tả |
-|----|----|
-| id (PK) | ID người dùng |
-| name | Tên người dùng |
-| email | Email đăng nhập |
-| password | Mật khẩu |
-| role_id (FK) | ID vai trò |
-| created_at | Thời gian tạo |
-| updated_at | Thời gian cập nhật |
+ADMIN
+LIBRARIAN
+READER
 
 ---
 
-## 3. Bảng authors
+# 3.2 Table: users
+
+Lưu thông tin người dùng.
+
+| Column | Description |
+|------|-------------|
+id (PK) | ID người dùng |
+name | Tên người dùng |
+email | Email đăng nhập |
+password | Mật khẩu |
+role_id (FK) | Vai trò |
+created_at | Thời gian tạo |
+updated_at | Thời gian cập nhật |
+
+---
+
+# 3.3 Table: authors
+
 Lưu thông tin tác giả.
 
-| Cột | Mô tả |
-|----|----|
-| id (PK) | ID tác giả |
-| name | Tên tác giả |
-| bio | Tiểu sử |
+| Column | Description |
+|------|-------------|
+id (PK) | ID tác giả |
+name | Tên tác giả |
+bio | Tiểu sử |
 
 ---
 
-## 4. Bảng categories
-Lưu danh mục sách.
+# 3.4 Table: categories
 
-| Cột | Mô tả |
-|----|----|
-| id (PK) | ID danh mục |
-| name | Tên danh mục |
-| description | Mô tả |
+Danh mục phân loại sách.
 
----
-
-## 5. Bảng publishers
-Lưu thông tin nhà xuất bản.
-
-| Cột | Mô tả |
-|----|----|
-| id (PK) | ID nhà xuất bản |
-| name | Tên nhà xuất bản |
+| Column | Description |
+|------|-------------|
+id (PK) | ID danh mục |
+name | Tên danh mục |
+description | Mô tả |
 
 ---
 
-## 6. Bảng books
+# 3.5 Table: publishers
+
+Thông tin nhà xuất bản.
+
+| Column | Description |
+|------|-------------|
+id (PK) | ID nhà xuất bản |
+name | Tên nhà xuất bản |
+
+---
+
+# 3.6 Table: books
+
 Lưu thông tin các cuốn sách trong thư viện.
 
-| Cột | Mô tả |
-|----|----|
-| id (PK) | ID sách |
-| title | Tên sách |
-| author_id (FK) | ID tác giả |
-| category_id (FK) | ID danh mục |
-| publisher_id (FK) | ID nhà xuất bản |
-| isbn | Mã ISBN của sách |
-| quantity | Tổng số sách |
-| available_quantity | Số lượng sách còn có thể mượn |
-| created_at | Thời gian tạo |
-| updated_at | Thời gian cập nhật |
+| Column | Description |
+|------|-------------|
+id (PK) | ID sách |
+title | Tên sách |
+isbn | Mã ISBN |
+author_id (FK) | Tác giả |
+category_id (FK) | Danh mục |
+publisher_id (FK) | Nhà xuất bản |
+quantity | Tổng số sách |
+available_quantity | Số sách còn có thể mượn |
+created_at | Thời gian tạo |
+updated_at | Thời gian cập nhật |
 
 ---
 
-## 7. Bảng borrow_records
-Lưu thông tin mượn và trả sách.
+# 3.7 Table: borrow_records
 
-| Cột | Mô tả |
-|----|----|
-| id (PK) | ID bản ghi mượn |
-| user_id (FK) | ID người mượn |
-| book_id (FK) | ID sách |
-| borrow_date | Ngày mượn |
-| due_date | Hạn trả |
-| return_date | Ngày trả |
-| status | Trạng thái mượn |
-| created_at | Thời gian tạo |
+Lưu lịch sử mượn và trả sách.
 
-### Giá trị của status
+| Column | Description |
+|------|-------------|
+id (PK) | ID bản ghi |
+user_id (FK) | Người mượn |
+book_id (FK) | Sách |
+borrow_date | Ngày mượn |
+due_date | Hạn trả |
+return_date | Ngày trả |
+renew_count | Số lần gia hạn |
+status | Trạng thái |
 
-- BORROWED (Đang mượn)
-- RETURNED (Đã trả)
-- OVERDUE (Quá hạn)
+### Giá trị status
+BORROWED
+RETURNED
+OVERDUE
 
 ---
 
-## 8. Bảng reservations
+# 3.8 Table: reservations
+
 Lưu thông tin đặt trước sách.
 
-| Cột | Mô tả |
-|----|----|
-| id (PK) | ID đặt trước |
-| user_id (FK) | ID người đặt |
-| book_id (FK) | ID sách |
-| reservation_date | Ngày đặt |
-| status | Trạng thái |
+| Column | Description |
+|------|-------------|
+id (PK) | ID đặt trước |
+user_id (FK) | Người đặt |
+book_id (FK) | Sách |
+reservation_date | Ngày đặt |
+status | Trạng thái |
 
-### Giá trị của status
-
-- PENDING (Đang chờ xử lý)
-- APPROVED (Đã duyệt)
-- CANCELLED (Đã hủy)
+### Giá trị status
+PENDING
+APPROVED
+CANCELLED
 
 ---
 
-## 9. Bảng fines
+# 3.9 Table: fines
+
 Lưu thông tin phí phạt do trả sách trễ.
 
-| Cột | Mô tả |
-|----|----|
-| id (PK) | ID phí phạt |
-| borrow_id (FK) | ID bản ghi mượn |
-| amount | Số tiền phạt |
-| status | Trạng thái thanh toán |
-| paid_at | Thời gian thanh toán |
+| Column | Description |
+|------|-------------|
+id (PK) | ID phí phạt |
+borrow_id (FK) | Bản ghi mượn |
+amount | Số tiền phạt |
+status | Trạng thái thanh toán |
+paid_at | Thời gian thanh toán |
 
-### Giá trị của status
-
-- UNPAID (Chưa thanh toán)
-- PAID (Đã thanh toán)
-
----
-
-# 2. Quan hệ giữa các bảng
-
-Quan hệ giữa các bảng trong hệ thống:
-
-- roles **1 - n** users  
-  → Một vai trò có thể có nhiều người dùng.
-
-- users **1 - n** borrow_records  
-  → Một người dùng có thể mượn nhiều sách.
-
-- books **1 - n** borrow_records  
-  → Một cuốn sách có thể được mượn nhiều lần.
-
-- users **1 - n** reservations  
-  → Một người dùng có thể đặt trước nhiều sách.
-
-- books **1 - n** reservations  
-  → Một cuốn sách có thể có nhiều lượt đặt trước.
-
-- borrow_records **1 - 1** fines  
-  → Một lần mượn có thể phát sinh một phí phạt.
-
-- authors **1 - n** books  
-  → Một tác giả có thể viết nhiều sách.
-
-- categories **1 - n** books  
-  → Một danh mục có thể chứa nhiều sách.
-
-- publishers **1 - n** books  
-  → Một nhà xuất bản có thể xuất bản nhiều sách.
+### Giá trị status
+UNPAID
+PAID
 
 ---
 
-# 3. Tổng số bảng
+# 3.10 Table: system_settings
+
+Lưu cấu hình quy định thư viện.
+
+| Column | Description |
+|------|-------------|
+id (PK) | ID |
+borrow_days | Số ngày mượn tối đa |
+fine_per_day | Phí phạt mỗi ngày |
+max_renew | Số lần gia hạn tối đa |
+
+---
+
+# 3.11 Table: notifications
+
+Thông báo hệ thống.
+
+| Column | Description |
+|------|-------------|
+id (PK) | ID |
+title | Tiêu đề |
+content | Nội dung |
+created_at | Thời gian tạo |
+
+---
+
+# 4. Quan hệ giữa các bảng
+
+Các quan hệ chính trong hệ thống:
+
+roles 1 --- n users
+
+users 1 --- n borrow_records
+users 1 --- n reservations
+
+books 1 --- n borrow_records
+books 1 --- n reservations
+
+borrow_records 1 --- 1 fines
+
+authors 1 --- n books
+categories 1 --- n books
+publishers 1 --- n books
+
+---
+
+# 5. Tổng kết
 
 | Nhóm | Bảng |
 |----|----|
-| Quản lý người dùng | roles, users |
-| Quản lý sách | books, authors, categories, publishers |
-| Nghiệp vụ thư viện | borrow_records, reservations, fines |
+Quản lý người dùng | roles, users |
+Quản lý sách | books, authors, categories, publishers |
+Nghiệp vụ thư viện | borrow_records, reservations, fines |
+Cấu hình hệ thống | system_settings, notifications |
 
-Tổng số bảng: **9 bảng**
+Tổng số bảng: **11**
 
+---
+
+# 6. Hướng mở rộng
+
+Trong tương lai có thể mở rộng thêm:
+
+- Online payment gateway
+- Email notification
+- Book recommendation system
+- Advanced analytics
