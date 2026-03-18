@@ -1,6 +1,8 @@
 package com.ou.LibraryManagement.service;
 
-import com.ou.LibraryManagement.model.SystemSetting;
+import com.ou.LibraryManagement.dto.system.SystemSettingRequest;
+import com.ou.LibraryManagement.dto.system.SystemSettingResponse;
+import com.ou.LibraryManagement.entity.SystemSetting;
 import com.ou.LibraryManagement.repository.SystemSettingRepository;
 import org.springframework.stereotype.Service;
 
@@ -13,11 +15,23 @@ public class SystemSettingService {
         this.repository = repository;
     }
 
-    public SystemSetting getSetting(Long id) {
-        return repository.findById(id).orElse(null);
+    public SystemSettingResponse getSetting(Long id) {
+        SystemSetting setting = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Setting not found with id: " + id));
+
+        return SystemSettingResponse.fromEntity(setting);
     }
 
-    public SystemSetting save(SystemSetting setting) {
-        return repository.save(setting);
+    public SystemSettingResponse updateSetting(Long id, SystemSettingRequest request) {
+
+        SystemSetting setting = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Setting not found with id: " + id));
+
+        setting.setBorrowDays(request.borrowDays());
+        setting.setFinePerDay(request.finePerDay());
+
+        SystemSetting updated = repository.save(setting);
+
+        return SystemSettingResponse.fromEntity(updated);
     }
 }

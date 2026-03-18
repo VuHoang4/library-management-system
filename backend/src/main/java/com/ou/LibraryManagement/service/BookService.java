@@ -1,11 +1,9 @@
 package com.ou.LibraryManagement.service;
 
-import com.ou.LibraryManagement.dto.BookRequest;
-import com.ou.LibraryManagement.dto.BookResponse;
-import com.ou.LibraryManagement.model.Book;
+import com.ou.LibraryManagement.dto.book.BookRequest;
+import com.ou.LibraryManagement.dto.book.BookResponse;
+import com.ou.LibraryManagement.entity.Book;
 import com.ou.LibraryManagement.repository.BookRepository;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,15 +24,14 @@ public class BookService {
                 .toList();
     }
 
-    public ResponseEntity<BookResponse> findById(Long id){
+    public BookResponse findById(Long id){
         Book book = bookRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Book not found"));
+                .orElseThrow(() -> new RuntimeException("Book not found with id: " + id));
 
-        return ResponseEntity.ok(BookResponse.fromEntity(book));
+        return BookResponse.fromEntity(book);
     }
 
     public List<BookResponse> search(String keyword){
-
         return bookRepository
                 .findByTitleContainingIgnoreCase(keyword)
                 .stream()
@@ -42,41 +39,42 @@ public class BookService {
                 .toList();
     }
 
-    public ResponseEntity<BookResponse> create(BookRequest request){
-
+    public BookResponse create(BookRequest request){
         Book book = new Book();
 
         book.setTitle(request.title());
         book.setIsbn(request.isbn());
         book.setQuantity(request.quantity());
-        book.setAvailableQuantity(request.quantity());
+        book.setAvailableQuantity(request.quantity()); // quan trọng
 
         Book saved = bookRepository.save(book);
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(BookResponse.fromEntity(saved));
+        return BookResponse.fromEntity(saved);
     }
 
-    public ResponseEntity<BookResponse> update(Long id, BookRequest request){
-
+    public BookResponse update(Long id, BookRequest request){
         Book book = bookRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Book not found"));
+                .orElseThrow(() -> new RuntimeException("Book not found with id: " + id));
+
+        //   logic availableQuantity
+        int borrowed = book.getQuantity() - book.getAvailableQuantity();
 
         book.setTitle(request.title());
         book.setIsbn(request.isbn());
         book.setQuantity(request.quantity());
 
+        // update lại availableQuantity
+        book.setAvailableQuantity(Math.max(0, request.quantity() - borrowed));
+
         Book updated = bookRepository.save(book);
 
-        return ResponseEntity.ok(BookResponse.fromEntity(updated));
+        return BookResponse.fromEntity(updated);
     }
 
-    public boolean deleteById(Long id){
-        if(!bookRepository.existsById(id))
-            return false;
-
+    public void deleteById(Long id){
+        if(!bookRepository.existsById(id)){
+            throw new RuntimeException("Book not found with id: " + id);
+        }
         bookRepository.deleteById(id);
-        return true;
     }
 }

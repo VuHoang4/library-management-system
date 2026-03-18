@@ -1,10 +1,11 @@
 package com.ou.LibraryManagement.controller;
 
-import com.ou.LibraryManagement.dto.AuthorRequest;
-import com.ou.LibraryManagement.dto.AuthorResponse;
+import com.ou.LibraryManagement.dto.author.AuthorRequest;
+import com.ou.LibraryManagement.dto.author.AuthorResponse;
 import com.ou.LibraryManagement.service.AuthorService;
 
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,25 +28,27 @@ public class AuthorController {
 
     @GetMapping("/{id}")
     public ResponseEntity<AuthorResponse> getById(@PathVariable Long id) {
-        return authorService.findById(id);
+        return ResponseEntity.ok(authorService.findById(id));
     }
 
     @PostMapping
     public ResponseEntity<AuthorResponse> create(@Valid @RequestBody AuthorRequest request) {
-        return authorService.create(request);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(authorService.create(request));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<AuthorResponse> update(@PathVariable Long id,
-                                                 @Valid @RequestBody AuthorRequest request) {
-        return authorService.update(id, request);
+    public ResponseEntity<AuthorResponse> update(
+            @PathVariable Long id,
+            @Valid @RequestBody AuthorRequest request
+    ) {
+        return ResponseEntity.ok(authorService.update(id, request));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-
-        return authorService.deleteById(id)
-                ? ResponseEntity.noContent().build()
-                : ResponseEntity.notFound().build();
+        authorService.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -1,6 +1,7 @@
 package com.ou.LibraryManagement.controller;
 
-import com.ou.LibraryManagement.model.SystemSetting;
+import com.ou.LibraryManagement.dto.system.SystemSettingRequest;
+import com.ou.LibraryManagement.dto.system.SystemSettingResponse;
 import com.ou.LibraryManagement.service.SystemSettingService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,16 +17,15 @@ public class SystemSettingController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<SystemSetting> getSetting(@PathVariable Long id){
+    public ResponseEntity<SystemSettingResponse> getSetting(@PathVariable Long id){
         return ResponseEntity.ok(service.getSetting(id));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<SystemSetting> updateSetting(
+    public ResponseEntity<SystemSettingResponse> updateSetting(
             @PathVariable Long id,
-            @RequestBody SystemSetting setting){
+            @RequestBody SystemSettingRequest request){
 
-        setting.setId(id);
-        return ResponseEntity.ok(service.save(setting));
+        return ResponseEntity.ok(service.updateSetting(id, request));
     }
 }

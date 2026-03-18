@@ -1,14 +1,14 @@
 package com.ou.LibraryManagement.service;
 
-import com.ou.LibraryManagement.dto.ReservationRequest;
-import com.ou.LibraryManagement.dto.ReservationResponse;
-import com.ou.LibraryManagement.model.Book;
-import com.ou.LibraryManagement.model.Reservation;
-import com.ou.LibraryManagement.model.User;
+import com.ou.LibraryManagement.dto.reservation.ReservationRequest;
+import com.ou.LibraryManagement.dto.reservation.ReservationResponse;
+import com.ou.LibraryManagement.entity.Book;
+import com.ou.LibraryManagement.entity.Reservation;
+import com.ou.LibraryManagement.entity.User;
+import com.ou.LibraryManagement.entity.enums.ReservationStatus;
 import com.ou.LibraryManagement.repository.BookRepository;
 import com.ou.LibraryManagement.repository.ReservationRepository;
 import com.ou.LibraryManagement.repository.UserRepository;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -45,14 +45,14 @@ public class ReservationService {
                 .toList();
     }
 
-    // Create Reservation
-    public ResponseEntity<ReservationResponse> create(ReservationRequest request){
+    //  CREATE RESERVATION
+    public ReservationResponse create(ReservationRequest request){
 
         Book book = bookRepository.findById(request.bookId())
                 .orElseThrow(() -> new RuntimeException("Book not found"));
 
         if(book.getAvailableQuantity() > 0){
-            throw new RuntimeException("Book still available, no need to reserve");
+            throw new RuntimeException("Book is available, no need to reserve");
         }
 
         User user = userRepository.findById(request.userId())
@@ -63,33 +63,45 @@ public class ReservationService {
         reservation.setBook(book);
         reservation.setUser(user);
         reservation.setReservationDate(LocalDate.now());
-        reservation.setStatus("PENDING");
+        reservation.setExpireDate(LocalDate.now().plusDays(2)); //  QUAN TRỌNG
+        reservation.setStatus(ReservationStatus.PENDING);
 
         Reservation saved = repository.save(reservation);
 
-        return ResponseEntity.ok(ReservationResponse.fromEntity(saved));
+        return ReservationResponse.fromEntity(saved);
     }
 
-    // Approve reservation
-    public ResponseEntity<ReservationResponse> approve(Long id){
+    //  READY (khi sách available)
+    public ReservationResponse markReady(Long id){
 
         Reservation reservation = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Reservation not found"));
 
-        reservation.setStatus("APPROVED");
+        reservation.setStatus(ReservationStatus.READY);
+        reservation.setExpireDate(LocalDate.now().plusDays(2));
 
         repository.save(reservation);
 
-        return ResponseEntity.ok(ReservationResponse.fromEntity(reservation));
+        return ReservationResponse.fromEntity(reservation);
     }
 
-    public boolean deleteById(Long id){
+    //  COMPLETE (user nhận sách)
+    public ReservationResponse complete(Long id){
 
-        if(!repository.existsById(id))
-            return false;
+        Reservation reservation = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Reservation not found"));
 
+        reservation.setStatus(ReservationStatus.COMPLETED);
+
+        repository.save(reservation);
+
+        return ReservationResponse.fromEntity(reservation);
+    }
+
+    public void deleteById(Long id){
+        if(!repository.existsById(id)){
+            throw new RuntimeException("Reservation not found with id: " + id);
+        }
         repository.deleteById(id);
-        return true;
     }
-
 }

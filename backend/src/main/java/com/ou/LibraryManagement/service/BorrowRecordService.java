@@ -1,10 +1,11 @@
 package com.ou.LibraryManagement.service;
 
-import com.ou.LibraryManagement.dto.BorrowRequest;
-import com.ou.LibraryManagement.dto.BorrowResponse;
-import com.ou.LibraryManagement.model.*;
+import com.ou.LibraryManagement.dto.borrow.BorrowRequest;
+import com.ou.LibraryManagement.dto.borrow.BorrowResponse;
+import com.ou.LibraryManagement.entity.*;
+import com.ou.LibraryManagement.entity.enums.BorrowStatus;
+import com.ou.LibraryManagement.entity.enums.FineStatus;
 import com.ou.LibraryManagement.repository.*;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -48,8 +49,8 @@ public class BorrowRecordService {
                 .toList();
     }
 
-    // Borrow Book
-    public ResponseEntity<BorrowResponse> borrowBook(BorrowRequest request){
+    //  BORROW BOOK
+    public BorrowResponse borrowBook(BorrowRequest request){
 
         Book book = bookRepository.findById(request.bookId())
                 .orElseThrow(() -> new RuntimeException("Book not found"));
@@ -61,42 +62,48 @@ public class BorrowRecordService {
         User user = userRepository.findById(request.userId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        SystemSetting setting = settingRepository.findById(1L).orElse(null);
+        SystemSetting setting = settingRepository.findById(1L)
+                .orElseThrow(() -> new RuntimeException("System setting not found"));
 
         BorrowRecord record = new BorrowRecord();
 
         record.setBook(book);
         record.setUser(user);
-
         record.setBorrowDate(LocalDate.now());
         record.setDueDate(LocalDate.now().plusDays(setting.getBorrowDays()));
-        record.setStatus("BORROWED");
+        record.setStatus(BorrowStatus.BORROWED);
 
+        // update số lượng
         book.setAvailableQuantity(book.getAvailableQuantity() - 1);
 
         BorrowRecord saved = repository.save(record);
         bookRepository.save(book);
 
-        return ResponseEntity.ok(BorrowResponse.fromEntity(saved));
+        return BorrowResponse.fromEntity(saved);
     }
 
-    // Return Book
-    public ResponseEntity<BorrowResponse> returnBook(Long id){
+    //  RETURN BOOK + AUTO CREATE FINE
+    public BorrowResponse returnBook(Long id){
 
         BorrowRecord record = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Borrow record not found"));
 
+        if(record.getStatus() == BorrowStatus.RETURNED){
+            throw new RuntimeException("Book already returned");
+        }
+
         Book book = record.getBook();
 
         record.setReturnDate(LocalDate.now());
-        record.setStatus("RETURNED");
+        record.setStatus(BorrowStatus.RETURNED);
 
+        // update số lượng
         book.setAvailableQuantity(book.getAvailableQuantity() + 1);
 
         repository.save(record);
         bookRepository.save(book);
 
-        // Fine calculation
+        //  CALCULATE FINE
         if(record.getReturnDate().isAfter(record.getDueDate())){
 
             long daysLate = ChronoUnit.DAYS.between(
@@ -104,20 +111,20 @@ public class BorrowRecordService {
                     record.getReturnDate()
             );
 
-            SystemSetting setting = settingRepository.findById(1L).orElse(null);
+            SystemSetting setting = settingRepository.findById(1L)
+                    .orElseThrow(() -> new RuntimeException("System setting not found"));
 
             double fineAmount = daysLate * setting.getFinePerDay();
 
             Fine fine = new Fine();
-
             fine.setBorrowRecord(record);
+            fine.setUser(record.getUser()); //  QUAN TRỌNG
             fine.setAmount(fineAmount);
-            fine.setStatus("UNPAID");
+            fine.setStatus(FineStatus.UNPAID);
 
             fineRepository.save(fine);
         }
 
-        return ResponseEntity.ok(BorrowResponse.fromEntity(record));
+        return BorrowResponse.fromEntity(record);
     }
-
 }

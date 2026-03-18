@@ -1,9 +1,9 @@
 package com.ou.LibraryManagement.controller;
 
-import com.ou.LibraryManagement.dto.ReservationRequest;
-import com.ou.LibraryManagement.dto.ReservationResponse;
-import com.ou.LibraryManagement.model.Reservation;
+import com.ou.LibraryManagement.dto.reservation.ReservationRequest;
+import com.ou.LibraryManagement.dto.reservation.ReservationResponse;
 import com.ou.LibraryManagement.service.ReservationService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,19 +31,26 @@ public class ReservationController {
 
     @PostMapping
     public ResponseEntity<ReservationResponse> create(@RequestBody ReservationRequest request) {
-        return reservationService.create(request);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(reservationService.create(request));
     }
 
-    @PutMapping("/{id}/approve")
-    public ResponseEntity<ReservationResponse> approve(@PathVariable Long id){
-        return reservationService.approve(id);
+    //  khi sách có sẵn
+    @PutMapping("/{id}/ready")
+    public ResponseEntity<ReservationResponse> markReady(@PathVariable Long id){
+        return ResponseEntity.ok(reservationService.markReady(id));
+    }
+
+    //  user nhận sách
+    @PutMapping("/{id}/complete")
+    public ResponseEntity<ReservationResponse> complete(@PathVariable Long id){
+        return ResponseEntity.ok(reservationService.complete(id));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-
-        return reservationService.deleteById(id)
-                ? ResponseEntity.noContent().build()
-                : ResponseEntity.notFound().build();
+        reservationService.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }
