@@ -1,6 +1,6 @@
 package com.ou.LibraryManagement.repository;
 
-import com.ou.LibraryManagement.model.BorrowRecord;
+import com.ou.LibraryManagement.entity.BorrowRecord;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

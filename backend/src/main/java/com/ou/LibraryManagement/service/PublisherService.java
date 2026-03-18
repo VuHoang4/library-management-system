@@ -1,11 +1,9 @@
 package com.ou.LibraryManagement.service;
 
-import com.ou.LibraryManagement.dto.PublisherRequest;
-import com.ou.LibraryManagement.dto.PublisherResponse;
-import com.ou.LibraryManagement.model.Publisher;
+import com.ou.LibraryManagement.dto.publisher.PublisherRequest;
+import com.ou.LibraryManagement.dto.publisher.PublisherResponse;
+import com.ou.LibraryManagement.entity.Publisher;
 import com.ou.LibraryManagement.repository.PublisherRepository;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,44 +24,37 @@ public class PublisherService {
                 .toList();
     }
 
-    public ResponseEntity<PublisherResponse> findById(Long id){
-
+    public PublisherResponse findById(Long id){
         Publisher publisher = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Publisher not found"));
+                .orElseThrow(() -> new RuntimeException("Publisher not found with id: " + id));
 
-        return ResponseEntity.ok(PublisherResponse.fromEntity(publisher));
+        return PublisherResponse.fromEntity(publisher);
     }
 
-    public ResponseEntity<PublisherResponse> create(PublisherRequest request){
-
+    public PublisherResponse create(PublisherRequest request){
         Publisher publisher = new Publisher();
         publisher.setName(request.name());
 
         Publisher saved = repository.save(publisher);
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(PublisherResponse.fromEntity(saved));
+        return PublisherResponse.fromEntity(saved);
     }
 
-    public ResponseEntity<PublisherResponse> update(Long id, PublisherRequest request){
-
+    public PublisherResponse update(Long id, PublisherRequest request){
         Publisher publisher = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Publisher not found"));
+                .orElseThrow(() -> new RuntimeException("Publisher not found with id: " + id));
 
         publisher.setName(request.name());
 
         Publisher updated = repository.save(publisher);
 
-        return ResponseEntity.ok(PublisherResponse.fromEntity(updated));
+        return PublisherResponse.fromEntity(updated);
     }
 
-    public boolean deleteById(Long id){
-
-        if(!repository.existsById(id))
-            return false;
-
+    public void deleteById(Long id){
+        if(!repository.existsById(id)){
+            throw new RuntimeException("Publisher not found with id: " + id);
+        }
         repository.deleteById(id);
-        return true;
     }
 }

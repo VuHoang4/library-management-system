@@ -1,14 +1,15 @@
 package com.ou.LibraryManagement.controller;
 
-import com.ou.LibraryManagement.dto.PublisherRequest;
-import com.ou.LibraryManagement.dto.PublisherResponse;
-import com.ou.LibraryManagement.model.Publisher;
+import com.ou.LibraryManagement.dto.publisher.PublisherRequest;
+import com.ou.LibraryManagement.dto.publisher.PublisherResponse;
 import com.ou.LibraryManagement.service.PublisherService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
 @RestController
 @RequestMapping("/api/publishers")
 public class PublisherController {
@@ -26,25 +27,27 @@ public class PublisherController {
 
     @GetMapping("/{id}")
     public ResponseEntity<PublisherResponse> getById(@PathVariable Long id) {
-        return publisherService.findById(id);
+        return ResponseEntity.ok(publisherService.findById(id));
     }
 
     @PostMapping
     public ResponseEntity<PublisherResponse> create(@Valid @RequestBody PublisherRequest request) {
-        return publisherService.create(request);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(publisherService.create(request));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PublisherResponse> update(@PathVariable Long id,
-                                                    @Valid @RequestBody PublisherRequest request) {
-        return publisherService.update(id, request);
+    public ResponseEntity<PublisherResponse> update(
+            @PathVariable Long id,
+            @Valid @RequestBody PublisherRequest request
+    ) {
+        return ResponseEntity.ok(publisherService.update(id, request));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-
-        return publisherService.deleteById(id)
-                ? ResponseEntity.noContent().build()
-                : ResponseEntity.notFound().build();
+        publisherService.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }

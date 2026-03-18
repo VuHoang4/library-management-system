@@ -1,6 +1,6 @@
 package com.ou.LibraryManagement.controller;
 
-import com.ou.LibraryManagement.model.Role;
+import com.ou.LibraryManagement.dto.role.RoleResponse;
 import com.ou.LibraryManagement.service.RoleService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +18,7 @@ public class RoleController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Role>> getAll(){
+    public ResponseEntity<List<RoleResponse>> getAll(){
         return ResponseEntity.ok(roleService.getAllRoles());
     }
 }

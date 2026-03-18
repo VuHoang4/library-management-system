@@ -1,6 +1,6 @@
 package com.ou.LibraryManagement.service;
 
-import com.ou.LibraryManagement.model.Role;
+import com.ou.LibraryManagement.dto.role.RoleResponse;
 import com.ou.LibraryManagement.repository.RoleRepository;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +15,10 @@ public class RoleService {
         this.roleRepository = roleRepository;
     }
 
-    public List<Role> getAllRoles() {
-        return roleRepository.findAll();
+    public List<RoleResponse> getAllRoles() {
+        return roleRepository.findAll()
+                .stream()
+                .map(RoleResponse::fromEntity)
+                .toList();
     }
 }

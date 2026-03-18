@@ -3,7 +3,6 @@ USE library_db;
 -- =====================================
 -- ROLES
 -- =====================================
-
 INSERT IGNORE INTO roles (name) VALUES
 ('ADMIN'),
 ('LIBRARIAN'),
