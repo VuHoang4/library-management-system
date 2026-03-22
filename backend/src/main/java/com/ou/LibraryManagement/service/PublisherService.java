@@ -3,6 +3,7 @@ package com.ou.LibraryManagement.service;
 import com.ou.LibraryManagement.dto.publisher.PublisherRequest;
 import com.ou.LibraryManagement.dto.publisher.PublisherResponse;
 import com.ou.LibraryManagement.entity.Publisher;
+import com.ou.LibraryManagement.exception.NotFoundException;
 import com.ou.LibraryManagement.repository.PublisherRepository;
 import org.springframework.stereotype.Service;
 
@@ -26,7 +27,7 @@ public class PublisherService {
 
     public PublisherResponse findById(Long id){
         Publisher publisher = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Publisher not found with id: " + id));
+                .orElseThrow(() -> new NotFoundException("Publisher not found with id: " + id));
 
         return PublisherResponse.fromEntity(publisher);
     }
@@ -42,7 +43,7 @@ public class PublisherService {
 
     public PublisherResponse update(Long id, PublisherRequest request){
         Publisher publisher = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Publisher not found with id: " + id));
+                .orElseThrow(() -> new NotFoundException("Publisher not found with id: " + id));
 
         publisher.setName(request.name());
 
@@ -53,7 +54,7 @@ public class PublisherService {
 
     public void deleteById(Long id){
         if(!repository.existsById(id)){
-            throw new RuntimeException("Publisher not found with id: " + id);
+            throw new NotFoundException("Publisher not found with id: " + id);
         }
         repository.deleteById(id);
     }

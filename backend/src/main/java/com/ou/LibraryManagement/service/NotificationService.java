@@ -4,6 +4,7 @@ import com.ou.LibraryManagement.dto.notification.NotificationRequest;
 import com.ou.LibraryManagement.dto.notification.NotificationResponse;
 import com.ou.LibraryManagement.entity.Notification;
 import com.ou.LibraryManagement.entity.User;
+import com.ou.LibraryManagement.exception.NotFoundException;
 import com.ou.LibraryManagement.repository.NotificationRepository;
 import com.ou.LibraryManagement.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -41,7 +42,7 @@ public class NotificationService {
     public NotificationResponse create(NotificationRequest request){
 
         User user = userRepository.findById(request.userId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
 
         Notification notification = new Notification();
         notification.setUser(user);
@@ -53,5 +54,18 @@ public class NotificationService {
         Notification saved = repository.save(notification);
 
         return NotificationResponse.fromEntity(saved);
+    }
+
+    public void notifyUser(Long userId, String title, String content){
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        Notification notification = new Notification();
+        notification.setUser(user);
+        notification.setTitle(title);
+        notification.setContent(content);
+
+        repository.save(notification);
     }
 }

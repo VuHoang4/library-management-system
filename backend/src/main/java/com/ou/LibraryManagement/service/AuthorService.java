@@ -3,6 +3,7 @@ package com.ou.LibraryManagement.service;
 import com.ou.LibraryManagement.dto.author.AuthorRequest;
 import com.ou.LibraryManagement.dto.author.AuthorResponse;
 import com.ou.LibraryManagement.entity.Author;
+import com.ou.LibraryManagement.exception.NotFoundException;
 import com.ou.LibraryManagement.repository.AuthorRepository;
 import org.springframework.stereotype.Service;
 
@@ -26,7 +27,7 @@ public class AuthorService {
 
     public AuthorResponse findById(Long id) {
         Author author = authorRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Author not found with id: " + id));
+                .orElseThrow(() -> new NotFoundException("Author not found with id: " + id));
 
         return AuthorResponse.fromEntity(author);
     }
@@ -43,7 +44,7 @@ public class AuthorService {
 
     public AuthorResponse update(Long id, AuthorRequest request) {
         Author author = authorRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Author not found with id: " + id));
+                .orElseThrow(() -> new NotFoundException("Author not found with id: " + id));
 
         author.setName(request.name());
         author.setBio(request.bio());
@@ -55,7 +56,7 @@ public class AuthorService {
 
     public void deleteById(Long id) {
         if (!authorRepository.existsById(id)) {
-            throw new RuntimeException("Author not found with id: " + id);
+            throw new NotFoundException("Author not found with id: " + id);
         }
         authorRepository.deleteById(id);
     }

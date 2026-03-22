@@ -1,0 +1,120 @@
+[
+  {
+    "name": "Create user valid",
+    "method": "POST",
+    "path": "/api/users",
+    "body": {
+      "name": "Nguyen Van A",
+      "email": "vana@ou.edu.vn",
+      "password": "123456",
+      "roleId": 1
+    },
+    "expect": 201
+  },
+  {
+    "name": "Create user duplicate email",
+    "method": "POST",
+    "path": "/api/users",
+    "body": {
+      "name": "Nguyen Van A 2",
+      "email": "vana@ou.edu.vn",
+      "password": "123456",
+      "roleId": 1
+    },
+    "expect": 400
+  },
+  {
+    "name": "Create user missing roleId",
+    "method": "POST",
+    "path": "/api/users",
+    "body": {
+      "name": "Test",
+      "email": "test@ou.edu.vn",
+      "password": "123456"
+    },
+    "expect": 400
+  },
+  {
+    "name": "Create user invalid email",
+    "method": "POST",
+    "path": "/api/users",
+    "body": {
+      "name": "Test",
+      "email": "invalid-email",
+      "password": "123456",
+      "roleId": 1
+    },
+    "expect": 400
+  },
+  {
+    "name": "Create user short password",
+    "method": "POST",
+    "path": "/api/users",
+    "body": {
+      "name": "Test",
+      "email": "test2@ou.edu.vn",
+      "password": "123",
+      "roleId": 1
+    },
+    "expect": 400
+  },
+  {
+    "name": "Get all users",
+    "method": "GET",
+    "path": "/api/users",
+    "body": null,
+    "expect": 200
+  },
+  {
+    "name": "Get user by id valid",
+    "method": "GET",
+    "path": "/api/users/1",
+    "body": null,
+    "expect": 200
+  },
+  {
+    "name": "Get user by id not found",
+    "method": "GET",
+    "path": "/api/users/999",
+    "body": null,
+    "expect": 404
+  },
+  {
+    "name": "Update user valid",
+    "method": "PUT",
+    "path": "/api/users/1",
+    "body": {
+      "name": "Nguyen Van A Updated",
+      "email": "vana.updated@ou.edu.vn",
+      "password": "123456",
+      "roleId": 1
+    },
+    "expect": 200
+  },
+  {
+    "name": "Update user not found",
+    "method": "PUT",
+    "path": "/api/users/999",
+    "body": {
+      "name": "Not Found",
+      "email": "notfound@ou.edu.vn",
+      "password": "123456",
+      "roleId": 1
+    },
+    "expect": 404
+  },
+  {
+    "name": "Delete user valid",
+    "method": "DELETE",
+    "path": "/api/users/1",
+    "body": null,
+    "expect": 204
+  },
+  {
+    "name": "Delete user not found",
+    "method": "DELETE",
+    "path": "/api/users/999",
+    "body": null,
+    "expect": 404
+  }
+]

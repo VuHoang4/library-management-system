@@ -4,6 +4,8 @@ import com.ou.LibraryManagement.dto.user.UserRequest;
 import com.ou.LibraryManagement.dto.user.UserResponse;
 import com.ou.LibraryManagement.entity.Role;
 import com.ou.LibraryManagement.entity.User;
+import com.ou.LibraryManagement.exception.BadRequestException;
+import com.ou.LibraryManagement.exception.NotFoundException;
 import com.ou.LibraryManagement.repository.RoleRepository;
 import com.ou.LibraryManagement.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -35,7 +37,7 @@ public class UserService {
 
     public UserResponse findById(Long id){
         User user = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+                .orElseThrow(() -> new NotFoundException("User not found with id: " + id));
 
         return UserResponse.fromEntity(user);
     }
@@ -43,11 +45,11 @@ public class UserService {
     public UserResponse create(UserRequest request){
 
         if(repository.existsByEmail(request.email())){
-            throw new RuntimeException("Email already exists");
+            throw new BadRequestException("Email already exists");
         }
 
         Role role = roleRepository.findById(request.roleId())
-                .orElseThrow(() -> new RuntimeException("Role not found"));
+                .orElseThrow(() -> new NotFoundException("Role not found"));
 
         User user = new User();
         user.setName(request.name());
@@ -63,7 +65,7 @@ public class UserService {
     public UserResponse update(Long id, UserRequest request){
 
         User user = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+                .orElseThrow(() -> new NotFoundException("User not found with id: " + id));
 
         if(repository.existsByEmail(request.email())
                 && !user.getEmail().equals(request.email())){
@@ -71,7 +73,7 @@ public class UserService {
         }
 
         Role role = roleRepository.findById(request.roleId())
-                .orElseThrow(() -> new RuntimeException("Role not found"));
+                .orElseThrow(() -> new NotFoundException("Role not found"));
 
         user.setName(request.name());
         user.setEmail(request.email());
@@ -85,7 +87,7 @@ public class UserService {
 
     public void deleteById(Long id){
         if(!repository.existsById(id)){
-            throw new RuntimeException("User not found with id: " + id);
+            throw new NotFoundException("User not found with id: " + id);
         }
         repository.deleteById(id);
     }

@@ -1,0 +1,86 @@
+[
+  {
+    "name": "Create category valid 1",
+    "method": "POST",
+    "path": "/api/categories",
+    "body": {
+      "name": "Fiction",
+      "description": "Fiction books"
+    },
+    "expect": 201
+  },
+  {
+    "name": "Create category valid 2",
+    "method": "POST",
+    "path": "/api/categories",
+    "body": {
+      "name": "Science",
+      "description": "Science books"
+    },
+    "expect": 201
+  },
+  {
+    "name": "Create category missing name",
+    "method": "POST",
+    "path": "/api/categories",
+    "body": {
+      "description": "No name"
+    },
+    "expect": 400
+  },
+  {
+    "name": "Get all categories",
+    "method": "GET",
+    "path": "/api/categories",
+    "body": null,
+    "expect": 200
+  },
+  {
+    "name": "Get category by id valid",
+    "method": "GET",
+    "path": "/api/categories/1",
+    "body": null,
+    "expect": 200
+  },
+  {
+    "name": "Get category not found",
+    "method": "GET",
+    "path": "/api/categories/999",
+    "body": null,
+    "expect": 404
+  },
+  {
+    "name": "Update category valid",
+    "method": "PUT",
+    "path": "/api/categories/1",
+    "body": {
+      "name": "Fiction Updated",
+      "description": "Updated"
+    },
+    "expect": 200
+  },
+  {
+    "name": "Update category not found",
+    "method": "PUT",
+    "path": "/api/categories/999",
+    "body": {
+      "name": "Not Found",
+      "description": "Nothing"
+    },
+    "expect": 404
+  },
+  {
+    "name": "Delete category valid",
+    "method": "DELETE",
+    "path": "/api/categories/2",
+    "body": null,
+    "expect": 204
+  },
+  {
+    "name": "Delete category not found",
+    "method": "DELETE",
+    "path": "/api/categories/999",
+    "body": null,
+    "expect": 404
+  }
+]

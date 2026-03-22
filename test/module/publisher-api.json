@@ -1,0 +1,80 @@
+[
+  {
+    "name": "Create publisher valid 1",
+    "method": "POST",
+    "path": "/api/publishers",
+    "body": {
+      "name": "NXB Tre"
+    },
+    "expect": 201
+  },
+  {
+    "name": "Create publisher valid 2",
+    "method": "POST",
+    "path": "/api/publishers",
+    "body": {
+      "name": "Penguin"
+    },
+    "expect": 201
+  },
+  {
+    "name": "Create publisher missing name",
+    "method": "POST",
+    "path": "/api/publishers",
+    "body": {},
+    "expect": 400
+  },
+  {
+    "name": "Get all publishers",
+    "method": "GET",
+    "path": "/api/publishers",
+    "body": null,
+    "expect": 200
+  },
+  {
+    "name": "Get publisher valid",
+    "method": "GET",
+    "path": "/api/publishers/1",
+    "body": null,
+    "expect": 200
+  },
+  {
+    "name": "Get publisher not found",
+    "method": "GET",
+    "path": "/api/publishers/999",
+    "body": null,
+    "expect": 404
+  },
+  {
+    "name": "Update publisher valid",
+    "method": "PUT",
+    "path": "/api/publishers/1",
+    "body": {
+      "name": "NXB Tre Updated"
+    },
+    "expect": 200
+  },
+  {
+    "name": "Update publisher not found",
+    "method": "PUT",
+    "path": "/api/publishers/999",
+    "body": {
+      "name": "Not Found"
+    },
+    "expect": 404
+  },
+  {
+    "name": "Delete publisher valid",
+    "method": "DELETE",
+    "path": "/api/publishers/2",
+    "body": null,
+    "expect": 204
+  },
+  {
+    "name": "Delete publisher not found",
+    "method": "DELETE",
+    "path": "/api/publishers/999",
+    "body": null,
+    "expect": 404
+  }
+]

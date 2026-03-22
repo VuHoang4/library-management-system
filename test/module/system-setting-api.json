@@ -1,0 +1,36 @@
+[
+  {
+    "name": "Get system setting valid",
+    "method": "GET",
+    "path": "/api/settings/1",
+    "body": null,
+    "expect": 200
+  },
+  {
+    "name": "Get system setting not found",
+    "method": "GET",
+    "path": "/api/settings/999",
+    "body": null,
+    "expect": 404
+  },
+  {
+    "name": "Update system setting valid",
+    "method": "PUT",
+    "path": "/api/settings/1",
+    "body": {
+      "borrowDays": 7,
+      "finePerDay": 5000
+    },
+    "expect": 200
+  },
+  {
+    "name": "Update system setting not found",
+    "method": "PUT",
+    "path": "/api/settings/999",
+    "body": {
+      "borrowDays": 10,
+      "finePerDay": 10000
+    },
+    "expect": 404
+  }
+]

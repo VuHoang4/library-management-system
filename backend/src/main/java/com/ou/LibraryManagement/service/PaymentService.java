@@ -7,10 +7,13 @@ import com.ou.LibraryManagement.entity.Payment;
 import com.ou.LibraryManagement.entity.User;
 import com.ou.LibraryManagement.entity.enums.FineStatus;
 import com.ou.LibraryManagement.entity.enums.PaymentStatus;
+import com.ou.LibraryManagement.exception.BadRequestException;
+import com.ou.LibraryManagement.exception.NotFoundException;
 import com.ou.LibraryManagement.repository.FineRepository;
 import com.ou.LibraryManagement.repository.PaymentRepository;
 import com.ou.LibraryManagement.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -48,13 +51,14 @@ public class PaymentService {
     }
 
     // 🔹 Thanh toán fine
+    @Transactional
     public PaymentResponse payFine(PaymentRequest request){
 
         Fine fine = fineRepository.findById(request.fineId())
-                .orElseThrow(() -> new RuntimeException("Fine not found"));
+                .orElseThrow(() -> new NotFoundException("Fine not found"));
 
         if(fine.getStatus() == FineStatus.PAID){
-            throw new RuntimeException("Fine already paid");
+            throw new BadRequestException("Fine already paid");
         }
 
         User user = fine.getUser();

@@ -1,5 +1,6 @@
 package com.ou.LibraryManagement.dto.book;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 
@@ -9,6 +10,6 @@ public record BookRequest(
 
         String isbn,
 
-        @Positive(message = "Quantity phải > 0")
+        @Min(value = 0, message = "Quantity phải >= 0")
         int quantity
 ) {}
