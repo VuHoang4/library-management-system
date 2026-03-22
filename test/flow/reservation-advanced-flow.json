@@ -1,0 +1,128 @@
+[
+  {
+    "name": "Create user A",
+    "method": "POST",
+    "path": "/api/users",
+    "body": {
+      "name": "User A",
+      "email": "a@ou.edu.vn",
+      "password": "123456",
+      "roleId": 1
+    },
+    "expect": 201
+  },
+  {
+    "name": "Create user B",
+    "method": "POST",
+    "path": "/api/users",
+    "body": {
+      "name": "User B",
+      "email": "b@ou.edu.vn",
+      "password": "123456",
+      "roleId": 1
+    },
+    "expect": 201
+  },
+
+  {
+    "name": "Create book quantity = 0 (to allow reservation)",
+    "method": "POST",
+    "path": "/api/books",
+    "body": {
+      "title": "Queue Book",
+      "isbn": "ISBN-QUEUE",
+      "quantity": 0
+    },
+    "expect": 201
+  },
+
+  {
+    "name": "User A reserve",
+    "method": "POST",
+    "path": "/api/reservations",
+    "body": {
+      "userId": 1,
+      "bookId": 1
+    },
+    "expect": 201
+  },
+  {
+    "name": "User B reserve",
+    "method": "POST",
+    "path": "/api/reservations",
+    "body": {
+      "userId": 2,
+      "bookId": 1
+    },
+    "expect": 201
+  },
+
+  {
+    "name": "Make book available (quantity = 1)",
+    "method": "PUT",
+    "path": "/api/books/1",
+    "body": {
+      "title": "Queue Book",
+      "isbn": "ISBN-QUEUE",
+      "quantity": 1
+    },
+    "expect": 200
+  },
+
+  {
+    "name": "User A borrow (should succeed)",
+    "method": "POST",
+    "path": "/api/borrow",
+    "body": {
+      "userId": 1,
+      "bookId": 1
+    },
+    "expect": 201
+  },
+
+  {
+    "name": "User B tries borrow (should fail - reserved for A)",
+    "method": "POST",
+    "path": "/api/borrow",
+    "body": {
+      "userId": 2,
+      "bookId": 1
+    },
+    "expect": 404
+  },
+
+  {
+    "name": "User A return book (trigger auto READY for B)",
+    "method": "PUT",
+    "path": "/api/borrow/return/1",
+    "body": null,
+    "expect": 200
+  },
+
+  {
+    "name": "Check reservation of user B (should be READY)",
+    "method": "GET",
+    "path": "/api/reservations/user/2",
+    "body": null,
+    "expect": 200
+  },
+
+  {
+    "name": "User B borrow (should succeed now)",
+    "method": "POST",
+    "path": "/api/borrow",
+    "body": {
+      "userId": 2,
+      "bookId": 1
+    },
+    "expect": 201
+  },
+
+  {
+    "name": "Check reservation of user B (should be COMPLETED)",
+    "method": "GET",
+    "path": "/api/reservations/user/2",
+    "body": null,
+    "expect": 200
+  }
+]

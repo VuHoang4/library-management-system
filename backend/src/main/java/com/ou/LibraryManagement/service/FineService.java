@@ -2,6 +2,7 @@ package com.ou.LibraryManagement.service;
 
 import com.ou.LibraryManagement.dto.fine.FineResponse;
 import com.ou.LibraryManagement.entity.Fine;
+import com.ou.LibraryManagement.exception.NotFoundException;
 import com.ou.LibraryManagement.repository.FineRepository;
 import org.springframework.stereotype.Service;
 
@@ -25,14 +26,14 @@ public class FineService {
 
     public FineResponse findById(Long id){
         Fine fine = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Fine not found with id: " + id));
+                .orElseThrow(() -> new NotFoundException("Fine not found with id: " + id));
 
         return FineResponse.fromEntity(fine);
     }
 
     public void deleteById(Long id){
         if(!repository.existsById(id)){
-            throw new RuntimeException("Fine not found with id: " + id);
+            throw new NotFoundException("Fine not found with id: " + id);
         }
         repository.deleteById(id);
     }

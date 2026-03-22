@@ -40,4 +40,9 @@ public class BorrowController {
     public ResponseEntity<BorrowResponse> returnBook(@PathVariable Long id) {
         return ResponseEntity.ok(borrowService.returnBook(id));
     }
+
+    @PutMapping("/{id}/renew")
+    public ResponseEntity<BorrowResponse> renew(@PathVariable Long id){
+        return ResponseEntity.ok(borrowService.renewBook(id));
+    }
 }
