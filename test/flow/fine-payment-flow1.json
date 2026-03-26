@@ -1,0 +1,35 @@
+[
+  {
+    "name": "Create user",
+    "method": "POST",
+    "path": "/api/users",
+    "body": {
+      "name": "User Flow",
+      "email": "flow@ou.edu.vn",
+      "password": "123456",
+      "roleId": 1
+    },
+    "expect": 201
+  },
+  {
+    "name": "Create book quantity = 1",
+    "method": "POST",
+    "path": "/api/books",
+    "body": {
+      "title": "Flow Book",
+      "isbn": "ISBN-FLOW",
+      "quantity": 1
+    },
+    "expect": 201
+  },
+  {
+    "name": "Borrow book",
+    "method": "POST",
+    "path": "/api/borrow",
+    "body": {
+      "userId": 1,
+      "bookId": 1
+    },
+    "expect": 201
+  }
+]

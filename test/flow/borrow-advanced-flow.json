@@ -42,7 +42,7 @@
       "userId": 1,
       "bookId": 1
     },
-    "expect": 404
+    "expect": 400
   },
 
   {

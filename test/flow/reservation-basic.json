@@ -1,0 +1,23 @@
+[
+  {
+    "name": "Create user",
+    "method": "POST",
+    "path": "/api/users",
+    "body": {"name":"A","email":"a@test.com","password":"123456","roleId":1},
+    "expect": 201
+  },
+  {
+    "name": "Create book quantity = 0",
+    "method": "POST",
+    "path": "/api/books",
+    "body": {"title":"Book","isbn":"B1","quantity":0},
+    "expect": 201
+  },
+  {
+    "name": "Create reservation success",
+    "method": "POST",
+    "path": "/api/reservations",
+    "body": {"userId":1,"bookId":1},
+    "expect": 201
+  }
+]

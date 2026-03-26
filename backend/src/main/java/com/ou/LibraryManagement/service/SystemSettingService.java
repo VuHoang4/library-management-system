@@ -26,10 +26,16 @@ public class SystemSettingService {
     public SystemSettingResponse updateSetting(Long id, SystemSettingRequest request) {
 
         SystemSetting setting = repository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Setting not found with id: " + id));
+                .orElseThrow(() -> new NotFoundException("Setting not found"));
 
         setting.setBorrowDays(request.borrowDays());
         setting.setFinePerDay(request.finePerDay());
+
+        if (Boolean.TRUE.equals(request.active())) {
+            // tắt hết setting khác
+            repository.findAll().forEach(s -> s.setActive(false));
+            setting.setActive(true);
+        }
 
         SystemSetting updated = repository.save(setting);
 

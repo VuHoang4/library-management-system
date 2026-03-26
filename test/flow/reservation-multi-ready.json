@@ -1,0 +1,26 @@
+[
+  { "name": "Create users 1", "method": "POST", "path": "/api/users",
+    "body": {"name":"U1","email":"u1@test.com","password":"123456","roleId":1}, "expect":201 },
+  { "name": "Create users 2", "method": "POST", "path": "/api/users",
+    "body": {"name":"U2","email":"u2@test.com","password":"123456","roleId":1}, "expect":201 },
+  { "name": "Create users 3", "method": "POST", "path": "/api/users",
+    "body": {"name":"U3","email":"u3@test.com","password":"123456","roleId":1}, "expect":201 },
+
+  { "name": "Create book = 0", "method": "POST", "path": "/api/books",
+    "body": {"title":"Multi","isbn":"M1","quantity":0}, "expect":201 },
+
+  { "name": "User1 reserve", "method": "POST", "path": "/api/reservations",
+    "body": {"userId":1,"bookId":1}, "expect":201 },
+
+  { "name": "User2 reserve", "method": "POST", "path": "/api/reservations",
+    "body": {"userId":2,"bookId":1}, "expect":201 },
+
+  { "name": "User3 reserve", "method": "POST", "path": "/api/reservations",
+    "body": {"userId":3,"bookId":1}, "expect":201 },
+
+  { "name": "Update book quantity = 2",
+    "method": "PUT",
+    "path": "/api/books/1",
+    "body": {"title":"Multi","isbn":"M1","quantity":1},
+    "expect": 200 }
+]

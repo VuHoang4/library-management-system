@@ -23,8 +23,6 @@ public class Book {
 
     private int quantity;
 
-    private int availableQuantity;
-
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 

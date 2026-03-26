@@ -10,6 +10,7 @@ public record PaymentResponse(
         Long id,
         double amount,
         String method,
+        String orderId,
         PaymentStatus status,
         Long fineId,
         LocalDateTime createdAt
@@ -21,6 +22,7 @@ public record PaymentResponse(
                 payment.getId(),
                 payment.getAmount(),
                 payment.getMethod(),
+                payment.getOrderId(),
                 payment.getStatus(),
                 payment.getFine().getId(),
                 payment.getCreatedAt()

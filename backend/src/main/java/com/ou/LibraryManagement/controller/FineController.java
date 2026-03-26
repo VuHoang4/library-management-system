@@ -26,10 +26,18 @@ public class FineController {
     public ResponseEntity<FineResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(fineService.findById(id));
     }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        fineService.deleteById(id);
-        return ResponseEntity.noContent().build();
+    @GetMapping("/user/{userId}")
+    public List<FineResponse> getByUser(@PathVariable Long userId){
+        return fineService.getByUser(userId);
     }
+    @GetMapping("/user/{userId}/unpaid")
+    public List<FineResponse> getUnpaid(@PathVariable Long userId){
+        return fineService.getUnpaidByUser(userId);
+    }
+
+//    @DeleteMapping("/{id}")
+//    public ResponseEntity<Void> delete(@PathVariable Long id) {
+//        fineService.deleteById(id);
+//        return ResponseEntity.noContent().build();
+//    }
 }

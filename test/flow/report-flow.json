@@ -1,0 +1,111 @@
+[
+  {
+    "name": "Create user A",
+    "method": "POST",
+    "path": "/api/users",
+    "body": {
+      "name": "User A",
+      "email": "usera@test.com",
+      "password": "123456",
+      "roleId": 1
+    },
+    "expect": 201
+  },
+  {
+    "name": "Create user B",
+    "method": "POST",
+    "path": "/api/users",
+    "body": {
+      "name": "User B",
+      "email": "userb@test.com",
+      "password": "123456",
+      "roleId": 1
+    },
+    "expect": 201
+  },
+
+  {
+    "name": "Create book 1",
+    "method": "POST",
+    "path": "/api/books",
+    "body": {
+      "title": "Java Core",
+      "isbn": "ISBN-JAVA",
+      "quantity": 5
+    },
+    "expect": 201
+  },
+  {
+    "name": "Create book 2",
+    "method": "POST",
+    "path": "/api/books",
+    "body": {
+      "title": "Spring Boot",
+      "isbn": "ISBN-SPRING",
+      "quantity": 5
+    },
+    "expect": 201
+  },
+
+  {
+    "name": "Borrow Java Core 1",
+    "method": "POST",
+    "path": "/api/borrow",
+    "body": { "userId": 1, "bookId": 1 },
+    "expect": 201
+  },
+  {
+    "name": "Return Java Core 1",
+    "method": "PUT",
+    "path": "/api/borrow/return/1",
+    "body": null,
+    "expect": 200
+  },
+
+  {
+    "name": "Borrow Java Core 2",
+    "method": "POST",
+    "path": "/api/borrow",
+    "body": { "userId": 2, "bookId": 1 },
+    "expect": 201
+  },
+  {
+    "name": "Return Java Core 2",
+    "method": "PUT",
+    "path": "/api/borrow/return/2",
+    "body": null,
+    "expect": 200
+  },
+
+  {
+    "name": "Borrow Spring Boot 1",
+    "method": "POST",
+    "path": "/api/borrow",
+    "body": { "userId": 1, "bookId": 2 },
+    "expect": 201
+  },
+
+
+  {
+    "name": "Borrow overdue book",
+    "method": "POST",
+    "path": "/api/borrow",
+    "body": { "userId": 2, "bookId": 2 },
+    "expect": 201
+  },
+
+  {
+    "name": "Get hot books report",
+    "method": "GET",
+    "path": "/api/reports/hot-books",
+    "body": null,
+    "expect": 200
+  },
+  {
+    "name": "Get overdue books report",
+    "method": "GET",
+    "path": "/api/reports/overdue",
+    "body": null,
+    "expect": 200
+  }
+]

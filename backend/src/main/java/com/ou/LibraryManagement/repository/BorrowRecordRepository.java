@@ -40,4 +40,5 @@ public interface BorrowRecordRepository extends JpaRepository<BorrowRecord, Long
 """)
     List<Overdue> getOverdueBooks();
 
+    int countByBookIdAndReturnDateIsNull(Long id);
 }

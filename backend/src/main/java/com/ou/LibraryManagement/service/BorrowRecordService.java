@@ -27,6 +27,7 @@ public class BorrowRecordService {
     private final ReservationRepository reservationRepository;
     private final NotificationService notificationService;
     private final ReservationService reservationService;
+    private final FineService fineService;
 
     public BorrowRecordService(
             BorrowRecordRepository repository,
@@ -36,7 +37,8 @@ public class BorrowRecordService {
             SystemSettingRepository settingRepository,
             ReservationRepository reservationRepository,
             NotificationService notificationService,
-            ReservationService reservationService
+            ReservationService reservationService,
+            FineService fineService
     ) {
         this.repository = repository;
         this.bookRepository = bookRepository;
@@ -46,8 +48,10 @@ public class BorrowRecordService {
         this.reservationRepository = reservationRepository;
         this.notificationService = notificationService;
         this.reservationService = reservationService;
+        this.fineService = fineService;
     }
 
+    // ================= FIND =================
     public List<BorrowResponse> findAll(){
         return repository.findAll()
                 .stream()
@@ -67,41 +71,35 @@ public class BorrowRecordService {
     public BorrowResponse borrowBook(BorrowRequest request){
 
         Book book = bookRepository.findById(request.bookId())
-                .orElseThrow(() -> new RuntimeException("Book not found"));
+                .orElseThrow(() -> new NotFoundException("Book not found"));
 
         User user = userRepository.findById(request.userId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
 
-        //  CHECK reservation READY (ưu tiên người đặt)
+        if(fineService.hasUnpaidFine(user.getId())){
+            throw new BadRequestException("Bạn còn tiền phạt");
+        }
+        // ưu tiên reservation READY
         List<Reservation> readyList = reservationRepository
                 .findByBookIdAndStatusOrderByReservationDateAsc(
                         book.getId(),
                         ReservationStatus.READY
                 );
 
-        if(!readyList.isEmpty() && !readyList.get(0).getUser().getId().equals(user.getId())){
+        if(!readyList.isEmpty() &&
+                !readyList.get(0).getUser().getId().equals(user.getId())){
             throw new BadRequestException("Book is reserved for another user");
         }
-//        //chặn PENDING queue
-//        List<Reservation> pendingList = reservationRepository
-//                .findByBookIdAndStatusOrderByReservationDateAsc(
-//                        book.getId(),
-//                        ReservationStatus.PENDING
-//                );
-//
-//        if(!pendingList.isEmpty()){
-//            Long firstUser = pendingList.get(0).getUser().getId();
-//
-//            if(!firstUser.equals(user.getId())){
-//                throw new BadRequestException("Book is reserved for another user");
-//            }
-//        }
 
-        if(book.getAvailableQuantity() <= 0){
-            throw new NotFoundException("Book not available");
+        //  tính available động
+        int borrowed = repository.countByBookIdAndReturnDateIsNull(book.getId());
+        int available = book.getQuantity() - borrowed;
+
+        if (available <= 0) {
+            throw new BadRequestException("Book not available");
         }
 
-        SystemSetting setting = settingRepository.findById(1L)
+        SystemSetting setting = settingRepository.findByActiveTrue()
                 .orElseThrow(() -> new NotFoundException("System setting not found"));
 
         BorrowRecord record = new BorrowRecord();
@@ -111,13 +109,9 @@ public class BorrowRecordService {
         record.setDueDate(LocalDate.now().plusDays(setting.getBorrowDays()));
         record.setStatus(BorrowStatus.BORROWED);
 
-        // update số lượng
-        book.setAvailableQuantity(book.getAvailableQuantity() - 1);
-
         BorrowRecord saved = repository.save(record);
-        bookRepository.save(book);
 
-        //  nếu borrow từ reservation → mark COMPLETED
+        // mark reservation COMPLETED nếu có
         if(!readyList.isEmpty()){
             Reservation r = readyList.stream()
                     .filter(x -> x.getUser().getId().equals(user.getId()))
@@ -133,37 +127,32 @@ public class BorrowRecordService {
         return BorrowResponse.fromEntity(saved);
     }
 
+    // ================= RENEW =================
     @Transactional
     public BorrowResponse renewBook(Long id){
 
         BorrowRecord record = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Borrow record not found"));
+                .orElseThrow(() -> new NotFoundException("Borrow record not found"));
 
-        //  đã trả rồi thì không renew
         if(record.getReturnDate() != null){
             throw new BadRequestException("Book already returned");
         }
 
-        //  quá hạn thì không cho renew
         if(LocalDate.now().isAfter(record.getDueDate())){
             throw new BadRequestException("Cannot renew overdue book");
         }
 
-        //  giới hạn số lần gia hạn
         if(record.getRenewCount() >= 2){
             throw new BadRequestException("Max renew reached");
         }
 
-        SystemSetting setting = settingRepository.findById(1L)
-                .orElseThrow(() -> new NotFoundException("Setting not found"));
+        SystemSetting setting = settingRepository.findByActiveTrue()
+                .orElseThrow(() -> new NotFoundException("System setting not found"));
 
-        //  gia hạn
         record.setDueDate(record.getDueDate().plusDays(setting.getBorrowDays()));
         record.setRenewCount(record.getRenewCount() + 1);
 
-        BorrowRecord updated = repository.save(record);
-
-        return BorrowResponse.fromEntity(updated);
+        return BorrowResponse.fromEntity(repository.save(record));
     }
 
     // ================= RETURN =================
@@ -182,11 +171,7 @@ public class BorrowRecordService {
         record.setReturnDate(LocalDate.now());
         record.setStatus(BorrowStatus.RETURNED);
 
-        // update số lượng
-        book.setAvailableQuantity(book.getAvailableQuantity() + 1);
-
         repository.save(record);
-        bookRepository.save(book);
 
         // ================= FINE =================
         if(record.getReturnDate().isAfter(record.getDueDate())){
@@ -196,7 +181,7 @@ public class BorrowRecordService {
                     record.getReturnDate()
             );
 
-            SystemSetting setting = settingRepository.findById(1L)
+            SystemSetting setting = settingRepository.findByActiveTrue()
                     .orElseThrow(() -> new NotFoundException("System setting not found"));
 
             double fineAmount = daysLate * setting.getFinePerDay();
@@ -209,7 +194,6 @@ public class BorrowRecordService {
 
             fineRepository.save(fine);
 
-            //  NOTIFICATION (fine)
             notificationService.notifyUser(
                     record.getUser().getId(),
                     "Trả sách trễ",
@@ -217,7 +201,7 @@ public class BorrowRecordService {
             );
         }
 
-        //  đồng bộ queue chuẩn
+        // queue reservation
         reservationService.processQueue(book);
 
         return BorrowResponse.fromEntity(record);
