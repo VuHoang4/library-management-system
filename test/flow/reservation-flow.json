@@ -1,0 +1,63 @@
+[
+  {
+    "name": "Create user",
+    "method": "POST",
+    "path": "/api/users",
+    "body": {
+      "name": "Res User",
+      "email": "res@ou.edu.vn",
+      "password": "123456",
+      "roleId": 1
+    },
+    "expect": 201
+  },
+  {
+    "name": "Create book quantity = 0",
+    "method": "POST",
+    "path": "/api/books",
+    "body": {
+      "title": "Reserved Book",
+      "isbn": "ISBN-RES",
+      "quantity": 0
+    },
+    "expect": 201
+  },
+  {
+    "name": "Create reservation",
+    "method": "POST",
+    "path": "/api/reservations",
+    "body": {
+      "userId": 1,
+      "bookId": 1
+    },
+    "expect": 201
+  },
+  {
+    "name": "Get reservations by user",
+    "method": "GET",
+    "path": "/api/reservations/user/1",
+    "body": null,
+    "expect": 200
+  },
+  {
+    "name": "Mark reservation READY",
+    "method": "PUT",
+    "path": "/api/reservations/1/ready",
+    "body": null,
+    "expect": 200
+  },
+  {
+    "name": "Complete reservation",
+    "method": "PUT",
+    "path": "/api/reservations/1/complete",
+    "body": null,
+    "expect": 200
+  },
+  {
+    "name": "Delete reservation",
+    "method": "DELETE",
+    "path": "/api/reservations/1",
+    "body": null,
+    "expect": 204
+  }
+]

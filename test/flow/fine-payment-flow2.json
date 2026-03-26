@@ -1,0 +1,9 @@
+[
+
+  {
+    "name": "Return book TRỄ (trigger fine)",
+    "method": "PUT",
+    "path": "/api/borrow/return/1",
+    "expect": 200
+  }
+]

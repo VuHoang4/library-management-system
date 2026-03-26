@@ -20,5 +20,7 @@ public class SystemSetting {
 
     private int maxRenew;
 
+    private boolean active;
+
     public SystemSetting() {}
 }

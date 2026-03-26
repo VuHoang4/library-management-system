@@ -1,0 +1,112 @@
+[
+  {
+    "name": "Create user",
+    "method": "POST",
+    "path": "/api/users",
+    "body": {
+      "name": "Advanced User",
+      "email": "advanced2@ou.edu.vn",
+      "password": "123456",
+      "roleId": 1
+    },
+    "expect": 201
+  },
+  {
+    "name": "Create book quantity = 1",
+    "method": "POST",
+    "path": "/api/books",
+    "body": {
+      "title": "Advanced Book",
+      "isbn": "ISBN-ADV",
+      "quantity": 1
+    },
+    "expect": 201
+  },
+
+  {
+    "name": "Borrow success",
+    "method": "POST",
+    "path": "/api/borrow",
+    "body": {
+      "userId": 1,
+      "bookId": 1
+    },
+    "expect": 201
+  },
+
+  {
+    "name": "Borrow when out of stock",
+    "method": "POST",
+    "path": "/api/borrow",
+    "body": {
+      "userId": 1,
+      "bookId": 1
+    },
+    "expect": 400
+  },
+
+  {
+    "name": "Renew lần 1",
+    "method": "PUT",
+    "path": "/api/borrow/1/renew",
+    "body": null,
+    "expect": 200
+  },
+  {
+    "name": "Renew lần 2",
+    "method": "PUT",
+    "path": "/api/borrow/1/renew",
+    "body": null,
+    "expect": 200
+  },
+  {
+    "name": "Renew vượt quá giới hạn",
+    "method": "PUT",
+    "path": "/api/borrow/1/renew",
+    "body": null,
+    "expect": 400
+  },
+
+  {
+    "name": "Return book",
+    "method": "PUT",
+    "path": "/api/borrow/return/1",
+    "body": null,
+    "expect": 200
+  },
+
+  {
+    "name": "Return again (error)",
+    "method": "PUT",
+    "path": "/api/borrow/return/1",
+    "body": null,
+    "expect": 400
+  },
+
+  {
+    "name": "Renew after return (error)",
+    "method": "PUT",
+    "path": "/api/borrow/1/renew",
+    "body": null,
+    "expect": 400
+  },
+
+  {
+    "name": "Borrow again after return",
+    "method": "POST",
+    "path": "/api/borrow",
+    "body": {
+      "userId": 1,
+      "bookId": 1
+    },
+    "expect": 201
+  },
+
+  {
+    "name": "Get borrow history",
+    "method": "GET",
+    "path": "/api/borrow/user/1",
+    "body": null,
+    "expect": 200
+  }
+]

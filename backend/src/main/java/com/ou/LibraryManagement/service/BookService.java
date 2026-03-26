@@ -3,6 +3,7 @@ package com.ou.LibraryManagement.service;
 import com.ou.LibraryManagement.dto.book.BookRequest;
 import com.ou.LibraryManagement.dto.book.BookResponse;
 import com.ou.LibraryManagement.entity.Book;
+import com.ou.LibraryManagement.exception.NotFoundException;
 import com.ou.LibraryManagement.repository.BookRepository;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +18,7 @@ public class BookService {
         this.bookRepository = bookRepository;
     }
 
+    // ================= QUERY =================
     public List<BookResponse> findAll(){
         return bookRepository.findAll()
                 .stream()
@@ -25,10 +27,7 @@ public class BookService {
     }
 
     public BookResponse findById(Long id){
-        Book book = bookRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Book not found with id: " + id));
-
-        return BookResponse.fromEntity(book);
+        return BookResponse.fromEntity(findEntityById(id));
     }
 
     public List<BookResponse> search(String keyword){
@@ -39,42 +38,42 @@ public class BookService {
                 .toList();
     }
 
+    // ================= COMMAND =================
     public BookResponse create(BookRequest request){
-        Book book = new Book();
-
-        book.setTitle(request.title());
-        book.setIsbn(request.isbn());
-        book.setQuantity(request.quantity());
-        book.setAvailableQuantity(request.quantity()); // quan trọng
-
-        Book saved = bookRepository.save(book);
-
-        return BookResponse.fromEntity(saved);
+        Book book = mapToEntity(new Book(), request);
+        return BookResponse.fromEntity(bookRepository.save(book));
     }
 
     public BookResponse update(Long id, BookRequest request){
-        Book book = bookRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Book not found with id: " + id));
-
-        //   logic availableQuantity
-        int borrowed = book.getQuantity() - book.getAvailableQuantity();
+        Book book = findEntityById(id);
+        mapToEntity(book, request);
+        return BookResponse.fromEntity(bookRepository.save(book));
+    }
+    public Book updateEntity(Long id, BookRequest request){
+        Book book = findEntityById(id);
 
         book.setTitle(request.title());
         book.setIsbn(request.isbn());
         book.setQuantity(request.quantity());
 
-        // update lại availableQuantity
-        book.setAvailableQuantity(Math.max(0, request.quantity() - borrowed));
-
-        Book updated = bookRepository.save(book);
-
-        return BookResponse.fromEntity(updated);
+        return bookRepository.save(book);
     }
 
     public void deleteById(Long id){
-        if(!bookRepository.existsById(id)){
-            throw new RuntimeException("Book not found with id: " + id);
-        }
-        bookRepository.deleteById(id);
+        Book book = findEntityById(id);
+        bookRepository.delete(book);
+    }
+
+    // ================= HELPER =================
+    public Book findEntityById(Long id){
+        return bookRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Book not found"));
+    }
+
+    private Book mapToEntity(Book book, BookRequest request){
+        book.setTitle(request.title());
+        book.setIsbn(request.isbn());
+        book.setQuantity(request.quantity());
+        return book;
     }
 }

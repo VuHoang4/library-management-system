@@ -1,0 +1,86 @@
+[
+  {
+    "name": "Create author valid 1",
+    "method": "POST",
+    "path": "/api/authors",
+    "body": {
+      "name": "Nguyen Nhat Anh",
+      "bio": "Famous Vietnamese author"
+    },
+    "expect": 201
+  },
+  {
+    "name": "Create author valid 2",
+    "method": "POST",
+    "path": "/api/authors",
+    "body": {
+      "name": "J.K. Rowling",
+      "bio": "Author of Harry Potter"
+    },
+    "expect": 201
+  },
+  {
+    "name": "Create author missing name",
+    "method": "POST",
+    "path": "/api/authors",
+    "body": {
+      "bio": "No name"
+    },
+    "expect": 400
+  },
+  {
+    "name": "Get all authors",
+    "method": "GET",
+    "path": "/api/authors",
+    "body": null,
+    "expect": 200
+  },
+  {
+    "name": "Get author by id valid",
+    "method": "GET",
+    "path": "/api/authors/1",
+    "body": null,
+    "expect": 200
+  },
+  {
+    "name": "Get author by id not found",
+    "method": "GET",
+    "path": "/api/authors/999",
+    "body": null,
+    "expect": 404
+  },
+  {
+    "name": "Update author valid",
+    "method": "PUT",
+    "path": "/api/authors/1",
+    "body": {
+      "name": "Nguyen Nhat Anh Updated",
+      "bio": "Updated bio"
+    },
+    "expect": 200
+  },
+  {
+    "name": "Update author not found",
+    "method": "PUT",
+    "path": "/api/authors/999",
+    "body": {
+      "name": "Not Found",
+      "bio": "Nothing"
+    },
+    "expect": 404
+  },
+  {
+    "name": "Delete author valid",
+    "method": "DELETE",
+    "path": "/api/authors/2",
+    "body": null,
+    "expect": 204
+  },
+  {
+    "name": "Delete author not found",
+    "method": "DELETE",
+    "path": "/api/authors/999",
+    "body": null,
+    "expect": 404
+  }
+]

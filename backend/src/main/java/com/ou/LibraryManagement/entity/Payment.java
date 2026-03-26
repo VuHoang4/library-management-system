@@ -26,6 +26,9 @@ public class Payment {
 
     private LocalDateTime createdAt;
 
+    private String orderId; //momo
+    private String txnRef; // mã giao dịch VNPay
+
     @ManyToOne
     @JoinColumn(name = "fine_id")
     private Fine fine;

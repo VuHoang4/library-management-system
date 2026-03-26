@@ -1,0 +1,23 @@
+[
+  {
+    "name": "Reserve when book available (should fail)",
+    "method": "POST",
+    "path": "/api/reservations",
+    "body": {"userId":1,"bookId":1},
+    "expect": 400
+  },
+  {
+    "name": "Duplicate reserve same user",
+    "method": "POST",
+    "path": "/api/reservations",
+    "body": {"userId":1,"bookId":1},
+    "expect": 400
+  },
+  {
+    "name": "Reserve invalid book",
+    "method": "POST",
+    "path": "/api/reservations",
+    "body": {"userId":1,"bookId":999},
+    "expect": 404
+  }
+]

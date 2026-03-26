@@ -1,0 +1,109 @@
+[
+  {
+    "name": "Create book valid 1",
+    "method": "POST",
+    "path": "/api/books",
+    "body": {
+      "title": "Java Core",
+      "isbn": "ISBN001",
+      "quantity": 5
+    },
+    "expect": 201
+  },
+  {
+    "name": "Create book valid 2",
+    "method": "POST",
+    "path": "/api/books",
+    "body": {
+      "title": "Spring Boot",
+      "isbn": "ISBN002",
+      "quantity": 3
+    },
+    "expect": 201
+  },
+  {
+    "name": "Create book missing title",
+    "method": "POST",
+    "path": "/api/books",
+    "body": {
+      "isbn": "ISBN003",
+      "quantity": 2
+    },
+    "expect": 400
+  },
+  {
+    "name": "Create book negative quantity",
+    "method": "POST",
+    "path": "/api/books",
+    "body": {
+      "title": "Invalid Book",
+      "isbn": "ISBN004",
+      "quantity": -1
+    },
+    "expect": 400
+  },
+  {
+    "name": "Get all books",
+    "method": "GET",
+    "path": "/api/books",
+    "body": null,
+    "expect": 200
+  },
+  {
+    "name": "Get book by id valid",
+    "method": "GET",
+    "path": "/api/books/1",
+    "body": null,
+    "expect": 200
+  },
+  {
+    "name": "Get book by id not found",
+    "method": "GET",
+    "path": "/api/books/999",
+    "body": null,
+    "expect": 404
+  },
+  {
+    "name": "Update book valid",
+    "method": "PUT",
+    "path": "/api/books/1",
+    "body": {
+      "title": "Java Core Updated",
+      "isbn": "ISBN001-U",
+      "quantity": 10
+    },
+    "expect": 200
+  },
+  {
+    "name": "Update book not found",
+    "method": "PUT",
+    "path": "/api/books/999",
+    "body": {
+      "title": "Not Found",
+      "isbn": "ISBN999",
+      "quantity": 1
+    },
+    "expect": 404
+  },
+  {
+    "name": "Search book by keyword",
+    "method": "GET",
+    "path": "/api/books/search?keyword=Java",
+    "body": null,
+    "expect": 200
+  },
+  {
+    "name": "Delete book valid",
+    "method": "DELETE",
+    "path": "/api/books/2",
+    "body": null,
+    "expect": 204
+  },
+  {
+    "name": "Delete book not found",
+    "method": "DELETE",
+    "path": "/api/books/999",
+    "body": null,
+    "expect": 404
+  }
+]

@@ -3,6 +3,7 @@ package com.ou.LibraryManagement.controller;
 import com.ou.LibraryManagement.dto.book.BookRequest;
 import com.ou.LibraryManagement.dto.book.BookResponse;
 import com.ou.LibraryManagement.service.BookService;
+import com.ou.LibraryManagement.service.LibraryService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,9 +16,11 @@ import java.util.List;
 public class BookController {
 
     private final BookService bookService;
+    private final LibraryService libraryService;
 
-    public BookController(BookService bookService){
+    public BookController(BookService bookService, LibraryService libraryService){
         this.bookService = bookService;
+        this.libraryService = libraryService;
     }
 
     @GetMapping
@@ -43,11 +46,10 @@ public class BookController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<BookResponse> update(
-            @PathVariable Long id,
-            @Valid @RequestBody BookRequest request
-    ){
-        return ResponseEntity.ok(bookService.update(id, request));
+    public BookResponse update(@PathVariable Long id,
+                              @Valid @RequestBody BookRequest request){
+
+        return libraryService.updateBook(id, request);
     }
 
     @DeleteMapping("/{id}")
