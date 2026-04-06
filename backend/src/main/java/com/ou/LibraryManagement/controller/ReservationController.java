@@ -13,44 +13,49 @@ import java.util.List;
 @RequestMapping("/api/reservations")
 public class ReservationController {
 
-    private final ReservationService reservationService;
+    private final ReservationService service;
 
-    public ReservationController(ReservationService reservationService) {
-        this.reservationService = reservationService;
+    public ReservationController(ReservationService service) {
+        this.service = service;
     }
 
+    // ================= GET =================
     @GetMapping
     public ResponseEntity<List<ReservationResponse>> getAll() {
-        return ResponseEntity.ok(reservationService.findAll());
+        return ResponseEntity.ok(service.findAll());
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<ReservationResponse>> getUserReservations(@PathVariable Long userId) {
-        return ResponseEntity.ok(reservationService.getByUser(userId));
+    public ResponseEntity<List<ReservationResponse>> getByUser(
+            @PathVariable Long userId
+    ) {
+        return ResponseEntity.ok(service.getByUser(userId));
     }
 
+    // ================= CREATE =================
     @PostMapping
-    public ResponseEntity<ReservationResponse> create(@RequestBody ReservationRequest request) {
+    public ResponseEntity<ReservationResponse> create(
+            @RequestBody ReservationRequest request
+    ) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(reservationService.create(request));
+                .body(service.create(request));
     }
 
-    //  khi sách có sẵn
-    @PutMapping("/{id}/ready")
-    public ResponseEntity<ReservationResponse> markReady(@PathVariable Long id){
-        return ResponseEntity.ok(reservationService.markReady(id));
+    // ================= COMPLETE =================
+    @PutMapping("/complete")
+    public ResponseEntity<Void> complete(
+            @RequestParam Long userId,
+            @RequestParam Long bookId
+    ){
+        service.completeReservation(userId, bookId);
+        return ResponseEntity.ok().build();
     }
 
-    //  user nhận sách
-    @PutMapping("/{id}/complete")
-    public ResponseEntity<ReservationResponse> complete(@PathVariable Long id){
-        return ResponseEntity.ok(reservationService.complete(id));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        reservationService.deleteById(id);
-        return ResponseEntity.noContent().build();
-    }
+    // ================= DELETE =================
+//    @DeleteMapping("/{id}")
+//    public ResponseEntity<Void> delete(@PathVariable Long id) {
+//        service.deleteById(id);
+//        return ResponseEntity.noContent().build();
+//    }
 }

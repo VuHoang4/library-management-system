@@ -1,0 +1,177 @@
+[
+  {
+    "name": "Create Author",
+    "method": "POST",
+    "path": "/api/authors",
+    "body": {
+      "name": "Test Author",
+      "bio": "Bio"
+    },
+    "expect": 201
+  },
+  {
+    "name": "Create Category",
+    "method": "POST",
+    "path": "/api/categories",
+    "body": {
+      "name": "Programming"
+    },
+    "expect": 201
+  },
+  {
+    "name": "Create Book (Quantity = 1)",
+    "method": "POST",
+    "path": "/api/books",
+    "body": {
+      "title": "Borrow Test Book",
+      "isbn": "BORROW-001",
+      "imageUrl": "",
+      "quantity": 1
+    },
+    "expect": 201
+  },
+
+  {
+    "name": "Create User A",
+    "method": "POST",
+    "path": "/api/users",
+    "body": {
+      "name": "User A",
+      "email": "userA@gmail.com",
+      "password": "123456",
+      "roleId": 3
+    },
+    "expect": 201
+  },
+  {
+    "name": "Create User B",
+    "method": "POST",
+    "path": "/api/users",
+    "body": {
+      "name": "User B",
+      "email": "userB@gmail.com",
+      "password": "123456",
+      "roleId": 3
+    },
+    "expect": 201
+  },
+
+
+
+  {
+    "name": "User A Borrow Book (Success)",
+    "method": "POST",
+    "path": "/api/borrow",
+    "body": {
+      "userId": 1,
+      "bookId": 1
+    },
+    "expect": 201
+  },
+
+  {
+    "name": "User B Borrow Book (Fail - No Available)",
+    "method": "POST",
+    "path": "/api/borrow",
+    "body": {
+      "userId": 2,
+      "bookId": 1
+    },
+    "expect": 400
+  },
+
+
+
+  {
+    "name": "User B Create Reservation (Queue)",
+    "method": "POST",
+    "path": "/api/reservations",
+    "body": {
+      "userId": 2,
+      "bookId": 1
+    },
+    "expect": 201
+  },
+
+  {
+    "name": "User B Borrow Again (Still Fail - Not HOLD yet)",
+    "method": "POST",
+    "path": "/api/borrow",
+    "body": {
+      "userId": 2,
+      "bookId": 1
+    },
+    "expect": 400
+  },
+
+
+
+  {
+    "name": "User A Return Book",
+    "method": "PUT",
+    "path": "/api/borrow/return/1",
+    "expect": 200
+  },
+
+  {
+    "name": "Queue Process → User B gets HOLD",
+    "method": "GET",
+    "path": "/api/reservations",
+    "expect": 200
+  },
+
+  {
+    "name": "User B Borrow (Now Success via HOLD)",
+    "method": "POST",
+    "path": "/api/borrow",
+    "body": {
+      "userId": 2,
+      "bookId": 1
+    },
+    "expect": 201
+  },
+
+
+
+  {
+    "name": "User B Renew Book (Success)",
+    "method": "PUT",
+    "path": "/api/borrow/2/renew",
+    "expect": 200
+  },
+
+  {
+    "name": "Renew 2",
+    "method": "PUT",
+    "path": "/api/borrow/2/renew",
+    "expect": 200
+  },
+  {
+    "name": "Renew 3 (Fail)",
+    "method": "PUT",
+    "path": "/api/borrow/2/renew",
+    "expect": 400
+  },
+
+  {
+    "name": "Return Again (Fail)",
+    "method": "PUT",
+    "path": "/api/borrow/return/1",
+    "expect": 400
+  },
+
+
+
+  {
+    "name": "Get All Borrow Records",
+    "method": "GET",
+    "path": "/api/borrow",
+    "expect": 200
+  },
+  {
+    "name": "Get Borrow By User",
+    "method": "GET",
+    "path": "/api/borrow/user/2",
+    "expect": 200
+  }
+]

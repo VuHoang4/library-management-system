@@ -3,9 +3,12 @@ package com.ou.LibraryManagement.controller;
 import com.ou.LibraryManagement.dto.notification.NotificationRequest;
 import com.ou.LibraryManagement.dto.notification.NotificationResponse;
 import com.ou.LibraryManagement.service.NotificationService;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 
@@ -19,16 +22,21 @@ public class NotificationController {
         this.service = service;
     }
 
+    // 🔒 ADMIN (xem toàn bộ)
+    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping
     public ResponseEntity<List<NotificationResponse>> getAll(){
         return ResponseEntity.ok(service.getAll());
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<NotificationResponse>> getByUser(@PathVariable Long userId){
-        return ResponseEntity.ok(service.getByUser(userId));
+    // 🔓 USER xem notification của mình
+    @GetMapping("/me")
+    public ResponseEntity<List<NotificationResponse>> getMyNotifications(Authentication auth){
+        return ResponseEntity.ok(service.getByEmail(auth.getName()));
     }
 
+    // 🔒 ADMIN + LIBRARIAN (tạo notification)
+    @PreAuthorize("hasAnyAuthority('ADMIN','LIBRARIAN')")
     @PostMapping
     public ResponseEntity<NotificationResponse> create(@RequestBody NotificationRequest request){
         return ResponseEntity

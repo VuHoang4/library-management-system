@@ -11,7 +11,7 @@ public class VNPayConfig {
     public static String vnp_Url =
             "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
 
-    //  dùng ngrok
+
     public static final String vnp_ReturnUrl =
-            "https://second-passengers-hope-westminster.trycloudflare.com/api/payments/vnpay-return";
+            " https://pottery-sounds-serving-stomach.trycloudflare.com/api/payments/vnpay-return";
 }

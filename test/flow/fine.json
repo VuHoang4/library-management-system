@@ -1,0 +1,27 @@
+[
+
+
+
+
+  {
+    "name": "Return Book (Overdue → Create Fine)",
+    "method": "PUT",
+    "path": "/api/borrow/return/1",
+    "expect": 200
+  },
+
+
+
+  {
+    "name": "Get My Fines",
+    "method": "GET",
+    "path": "/api/fines/me",
+    "expect": 200
+  },
+  {
+    "name": "Get My Unpaid Fines",
+    "method": "GET",
+    "path": "/api/fines/me/unpaid",
+    "expect": 200
+  }
+]

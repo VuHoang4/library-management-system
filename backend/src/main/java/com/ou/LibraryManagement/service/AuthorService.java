@@ -3,9 +3,12 @@ package com.ou.LibraryManagement.service;
 import com.ou.LibraryManagement.dto.author.AuthorRequest;
 import com.ou.LibraryManagement.dto.author.AuthorResponse;
 import com.ou.LibraryManagement.entity.Author;
+import com.ou.LibraryManagement.exception.BadRequestException;
 import com.ou.LibraryManagement.exception.NotFoundException;
 import com.ou.LibraryManagement.repository.AuthorRepository;
+import com.ou.LibraryManagement.repository.BookRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -13,10 +16,15 @@ import java.util.List;
 public class AuthorService {
 
     private final AuthorRepository authorRepository;
+    private final BookRepository bookRepository;
 
-    public AuthorService(AuthorRepository authorRepository) {
+    public AuthorService(AuthorRepository authorRepository,
+                         BookRepository bookRepository) {
         this.authorRepository = authorRepository;
+        this.bookRepository = bookRepository;
     }
+
+    // ================= QUERY =================
 
     public List<AuthorResponse> findAll() {
         return authorRepository.findAll()
@@ -26,38 +34,71 @@ public class AuthorService {
     }
 
     public AuthorResponse findById(Long id) {
-        Author author = authorRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Author not found with id: " + id));
-
-        return AuthorResponse.fromEntity(author);
+        return AuthorResponse.fromEntity(findEntityById(id));
     }
 
+    // ================= COMMAND =================
+
+    @Transactional
     public AuthorResponse create(AuthorRequest request) {
+
+        validateRequest(request);
+
+        if(authorRepository.existsByName(request.name())){
+            throw new BadRequestException("Author already exists");
+        }
+
         Author author = new Author();
         author.setName(request.name());
         author.setBio(request.bio());
 
-        Author saved = authorRepository.save(author);
-
-        return AuthorResponse.fromEntity(saved);
+        return AuthorResponse.fromEntity(authorRepository.save(author));
     }
 
+    @Transactional
     public AuthorResponse update(Long id, AuthorRequest request) {
-        Author author = authorRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Author not found with id: " + id));
+
+        validateRequest(request);
+
+        Author author = findEntityById(id);
+
+        // check duplicate (exclude itself)
+        if(authorRepository.existsByName(request.name())
+                && !author.getName().equals(request.name())){
+            throw new BadRequestException("Author already exists");
+        }
 
         author.setName(request.name());
         author.setBio(request.bio());
 
-        Author updated = authorRepository.save(author);
-
-        return AuthorResponse.fromEntity(updated);
+        return AuthorResponse.fromEntity(authorRepository.save(author));
     }
 
+    @Transactional
     public void deleteById(Long id) {
-        if (!authorRepository.existsById(id)) {
-            throw new NotFoundException("Author not found with id: " + id);
+
+        Author author = findEntityById(id);
+
+        boolean hasBook = bookRepository.existsByAuthorId(id);
+
+        if(hasBook){
+            throw new BadRequestException("Cannot delete author with existing books");
         }
-        authorRepository.deleteById(id);
+
+        authorRepository.delete(author);
+    }
+
+    // ================= HELPER =================
+
+    private Author findEntityById(Long id){
+        return authorRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Author not found with id: " + id));
+    }
+
+    private void validateRequest(AuthorRequest request){
+
+        if(request.name() == null || request.name().isBlank()){
+            throw new BadRequestException("Author name is required");
+        }
     }
 }

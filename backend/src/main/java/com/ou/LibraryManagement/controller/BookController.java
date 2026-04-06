@@ -4,10 +4,13 @@ import com.ou.LibraryManagement.dto.book.BookRequest;
 import com.ou.LibraryManagement.dto.book.BookResponse;
 import com.ou.LibraryManagement.service.BookService;
 import com.ou.LibraryManagement.service.LibraryService;
+
 import jakarta.validation.Valid;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 
@@ -23,9 +26,13 @@ public class BookController {
         this.libraryService = libraryService;
     }
 
+    // ================= QUERY =================
+
     @GetMapping
-    public ResponseEntity<List<BookResponse>> getAll(){
-        return ResponseEntity.ok(bookService.findAll());
+    public ResponseEntity<List<BookResponse>> getAll(
+            @RequestParam(required = false) Long userId
+    ) {
+        return ResponseEntity.ok(bookService.getAllBooks(userId));
     }
 
     @GetMapping("/{id}")
@@ -38,6 +45,9 @@ public class BookController {
         return ResponseEntity.ok(bookService.search(keyword));
     }
 
+    // ================= COMMAND =================
+
+//    @PreAuthorize("hasAnyAuthority('LIBRARIAN','ADMIN')")
     @PostMapping
     public ResponseEntity<BookResponse> create(@Valid @RequestBody BookRequest request){
         return ResponseEntity
@@ -45,13 +55,16 @@ public class BookController {
                 .body(bookService.create(request));
     }
 
+//    @PreAuthorize("hasAnyAuthority('LIBRARIAN','ADMIN')")
     @PutMapping("/{id}")
-    public BookResponse update(@PathVariable Long id,
-                              @Valid @RequestBody BookRequest request){
+    public ResponseEntity<BookResponse> update(
+            @PathVariable Long id,
+            @Valid @RequestBody BookRequest request){
 
-        return libraryService.updateBook(id, request);
+        return ResponseEntity.ok(libraryService.updateBook(id, request));
     }
 
+//    @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id){
         bookService.deleteById(id);

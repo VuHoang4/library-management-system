@@ -1,0 +1,23 @@
+[
+  {
+    "name": "User A HOLDING",
+    "method": "POST",
+    "path": "/api/reservations",
+    "body": { "userId": 3, "bookId": 1 },
+    "expect": 201
+  },
+  {
+    "name": "User B QUEUE",
+    "method": "POST",
+    "path": "/api/reservations",
+    "body": { "userId": 2, "bookId": 1 },
+    "expect": 201
+  },
+  {
+    "name": "User B borrow → FAIL",
+    "method": "POST",
+    "path": "/api/borrow",
+    "body": { "userId": 2, "bookId": 1 },
+    "expect": 400
+  }
+]

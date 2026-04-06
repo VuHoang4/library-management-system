@@ -1,0 +1,38 @@
+[
+  {
+    "name": "Create USER",
+    "method": "POST",
+    "path": "/api/users",
+    "body": {
+      "name": "Regular User",
+      "email": "user@gmail.com",
+      "password": "123456",
+      "roleId": 3
+    },
+    "expect": 201
+  },
+  {
+    "name": "Create LIBRARIAN",
+    "method": "POST",
+    "path": "/api/users",
+    "body": {
+      "name": "Librarian Staff",
+      "email": "lib@gmail.com",
+      "password": "123456",
+      "roleId": 2
+    },
+    "expect": 201
+  },
+  {
+    "name": "Create ADMIN",
+    "method": "POST",
+    "path": "/api/users",
+    "body": {
+      "name": "System Admin",
+      "email": "admin@gmail.com",
+      "password": "123456",
+      "roleId": 1
+    },
+    "expect": 201
+  }
+]

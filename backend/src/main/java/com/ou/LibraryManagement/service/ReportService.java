@@ -2,7 +2,7 @@ package com.ou.LibraryManagement.service;
 
 import com.ou.LibraryManagement.dto.HotBook;
 import com.ou.LibraryManagement.dto.Overdue;
-import com.ou.LibraryManagement.repository.BorrowRecordRepository;
+import com.ou.LibraryManagement.repository.BorrowRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -10,9 +10,9 @@ import java.util.List;
 @Service
 public class ReportService {
 
-    private final BorrowRecordRepository repository;
+    private final BorrowRepository repository;
 
-    public ReportService(BorrowRecordRepository repository) {
+    public ReportService(BorrowRepository repository) {
         this.repository = repository;
     }
 

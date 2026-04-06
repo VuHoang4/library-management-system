@@ -6,9 +6,10 @@ import com.ou.LibraryManagement.entity.BorrowRecord;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
-public interface BorrowRecordRepository extends JpaRepository<BorrowRecord, Long> {
+public interface BorrowRepository extends JpaRepository<BorrowRecord, Long> {
 
     List<BorrowRecord> findByUserId(Long userId);
 
@@ -41,4 +42,8 @@ public interface BorrowRecordRepository extends JpaRepository<BorrowRecord, Long
     List<Overdue> getOverdueBooks();
 
     int countByBookIdAndReturnDateIsNull(Long id);
+
+    boolean existsByBookIdAndReturnDateIsNull(Long id);
+
+    List<BorrowRecord> findByReturnDateIsNullAndDueDateBefore(LocalDateTime now);
 }

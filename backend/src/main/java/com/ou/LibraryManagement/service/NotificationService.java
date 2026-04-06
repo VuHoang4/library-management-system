@@ -68,4 +68,11 @@ public class NotificationService {
 
         repository.save(notification);
     }
+
+    public List<NotificationResponse> getByEmail(String email){
+        return repository.findByUserEmail(email)
+                .stream()
+                .map(NotificationResponse::fromEntity)
+                .toList();
+    }
 }

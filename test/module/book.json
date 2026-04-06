@@ -1,0 +1,175 @@
+[
+  {
+    "name": "Create Book - Valid",
+    "method": "POST",
+    "path": "/api/books",
+    "body": {
+      "title": "Clean Code",
+      "isbn": "9780132350884",
+      "imageUrl": "https://example.com/clean-code.jpg",
+      "quantity": 10
+    },
+    "expect": 201
+  },
+  {
+    "name": "Create Book - Another",
+    "method": "POST",
+    "path": "/api/books",
+    "body": {
+      "title": "Design Patterns",
+      "isbn": "9780201633610",
+      "imageUrl": "https://example.com/design-patterns.jpg",
+      "quantity": 5
+    },
+    "expect": 201
+  },
+  {
+    "name": "Create Book - Invalid (Empty Title)",
+    "method": "POST",
+    "path": "/api/books",
+    "body": {
+      "title": "",
+      "isbn": "123",
+      "imageUrl": "",
+      "quantity": 5
+    },
+    "expect": 400
+  },
+  {
+    "name": "Create Book - Invalid (Negative Quantity)",
+    "method": "POST",
+    "path": "/api/books",
+    "body": {
+      "title": "Invalid Book",
+      "isbn": "123",
+      "imageUrl": "",
+      "quantity": -1
+    },
+    "expect": 400
+  },
+  {
+    "name": "Create Book - Duplicate ISBN",
+    "method": "POST",
+    "path": "/api/books",
+    "body": {
+      "title": "Another Clean Code",
+      "isbn": "9780132350884",
+      "imageUrl": "",
+      "quantity": 3
+    },
+    "expect": 400
+  },
+
+  {
+    "name": "Get All Books",
+    "method": "GET",
+    "path": "/api/books",
+    "expect": 200
+  },
+  {
+    "name": "Get Book By Id - Valid",
+    "method": "GET",
+    "path": "/api/books/1",
+    "expect": 200
+  },
+  {
+    "name": "Get Book By Id - Not Found",
+    "method": "GET",
+    "path": "/api/books/999",
+    "expect": 404
+  },
+
+  {
+    "name": "Search Book - Found",
+    "method": "GET",
+    "path": "/api/books/search?keyword=Clean",
+    "expect": 200
+  },
+  {
+    "name": "Search Book - Not Found",
+    "method": "GET",
+    "path": "/api/books/search?keyword=XYZ123",
+    "expect": 200
+  },
+
+  {
+    "name": "Update Book - Valid",
+    "method": "PUT",
+    "path": "/api/books/1",
+    "body": {
+      "title": "Clean Code Updated",
+      "isbn": "9780132350884",
+      "imageUrl": "https://example.com/new.jpg",
+      "quantity": 15
+    },
+    "expect": 200
+  },
+  {
+    "name": "Update Book - Invalid (Empty Title)",
+    "method": "PUT",
+    "path": "/api/books/1",
+    "body": {
+      "title": "",
+      "isbn": "9780132350884",
+      "imageUrl": "",
+      "quantity": 10
+    },
+    "expect": 400
+  },
+  {
+    "name": "Update Book - Invalid (Negative Quantity)",
+    "method": "PUT",
+    "path": "/api/books/1",
+    "body": {
+      "title": "Invalid Update",
+      "isbn": "9780132350884",
+      "imageUrl": "",
+      "quantity": -5
+    },
+    "expect": 400
+  },
+  {
+    "name": "Update Book - Duplicate ISBN",
+    "method": "PUT",
+    "path": "/api/books/1",
+    "body": {
+      "title": "Conflict Book",
+      "isbn": "9780201633610",
+      "imageUrl": "",
+      "quantity": 10
+    },
+    "expect": 400
+  },
+  {
+    "name": "Update Book - Not Found",
+    "method": "PUT",
+    "path": "/api/books/999",
+    "body": {
+      "title": "Not Found",
+      "isbn": "000",
+      "imageUrl": "",
+      "quantity": 1
+    },
+    "expect": 404
+  },
+
+  {
+    "name": "Delete Book - Valid",
+    "method": "DELETE",
+    "path": "/api/books/2",
+    "expect": 204
+  },
+  {
+    "name": "Delete Book - Not Found",
+    "method": "DELETE",
+    "path": "/api/books/999",
+    "expect": 404
+  },
+
+  {
+    "name": "Delete Book - Has Borrow (Business Rule)",
+    "method": "DELETE",
+    "path": "/api/books/1",
+    "expect": 400
+  }
+]

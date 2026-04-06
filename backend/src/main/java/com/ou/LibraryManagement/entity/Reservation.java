@@ -1,6 +1,7 @@
 package com.ou.LibraryManagement.entity;
 
 import com.ou.LibraryManagement.entity.enums.ReservationStatus;
+import com.ou.LibraryManagement.entity.enums.ReservationType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,29 +22,21 @@ public class Reservation {
     private LocalDate expireDate;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ReservationStatus status = ReservationStatus.PENDING;
+    private ReservationType type;
+
+    @Enumerated(EnumType.STRING)
+    private ReservationStatus status;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "book_id")
     private Book book;
-
-    public Reservation(){}
 
     @PrePersist
     public void prePersist(){
-        if (reservationDate == null) {
+        if(reservationDate == null){
             reservationDate = LocalDate.now();
-        }
-        if (expireDate == null) {
-            expireDate = reservationDate.plusDays(2);
-        }
-        if (status == null) {
-            status = ReservationStatus.PENDING;
         }
     }
 }

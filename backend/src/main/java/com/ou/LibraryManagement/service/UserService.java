@@ -62,6 +62,12 @@ public class UserService {
         return UserResponse.fromEntity(saved);
     }
 
+    public UserResponse getByEmail(String email){
+        return repository.findByEmail(email)
+                .map(UserResponse::fromEntity)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
     public UserResponse update(Long id, UserRequest request){
 
         User user = repository.findById(id)

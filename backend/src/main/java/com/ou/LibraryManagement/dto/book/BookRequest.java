@@ -7,8 +7,8 @@ import jakarta.validation.constraints.Positive;
 public record BookRequest(
         @NotBlank(message = "Title không được để trống")
         String title,
-
         String isbn,
+        String imageUrl,
 
         @Min(value = 0, message = "Quantity phải >= 0")
         int quantity

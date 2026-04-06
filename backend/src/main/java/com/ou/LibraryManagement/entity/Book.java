@@ -22,6 +22,7 @@ public class Book {
     private String isbn;
 
     private int quantity;
+    private String imageUrl;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

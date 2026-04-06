@@ -1,0 +1,92 @@
+[
+  {
+    "name": "Create Author - Valid",
+    "method": "POST",
+    "path": "/api/authors",
+    "body": {
+      "name": "J.K. Rowling",
+      "bio": "Author of Harry Potter"
+    },
+    "expect": 201
+  },
+  {
+    "name": "Create Author - Another",
+    "method": "POST",
+    "path": "/api/authors",
+    "body": {
+      "name": "George R.R. Martin",
+      "bio": "Author of Game of Thrones"
+    },
+    "expect": 201
+  },
+  {
+    "name": "Create Author - Invalid (Empty Name)",
+    "method": "POST",
+    "path": "/api/authors",
+    "body": {
+      "name": "",
+      "bio": "Invalid author"
+    },
+    "expect": 400
+  },
+  {
+    "name": "Create Author - Duplicate",
+    "method": "POST",
+    "path": "/api/authors",
+    "body": {
+      "name": "J.K. Rowling",
+      "bio": "Duplicate test"
+    },
+    "expect": 400
+  },
+  {
+    "name": "Get All Authors",
+    "method": "GET",
+    "path": "/api/authors",
+    "expect": 200
+  },
+  {
+    "name": "Get Author By Id - Valid",
+    "method": "GET",
+    "path": "/api/authors/1",
+    "expect": 200
+  },
+  {
+    "name": "Get Author By Id - Not Found",
+    "method": "GET",
+    "path": "/api/authors/999",
+    "expect": 404
+  },
+  {
+    "name": "Update Author - Valid",
+    "method": "PUT",
+    "path": "/api/authors/1",
+    "body": {
+      "name": "J.K. Rowling Updated",
+      "bio": "Updated bio"
+    },
+    "expect": 200
+  },
+  {
+    "name": "Update Author - Duplicate Name",
+    "method": "PUT",
+    "path": "/api/authors/1",
+    "body": {
+      "name": "George R.R. Martin",
+      "bio": "Conflict name"
+    },
+    "expect": 400
+  },
+  {
+    "name": "Delete Author - Valid",
+    "method": "DELETE",
+    "path": "/api/authors/2",
+    "expect": 204
+  },
+  {
+    "name": "Delete Author - Not Found",
+    "method": "DELETE",
+    "path": "/api/authors/999",
+    "expect": 404
+  }
+]

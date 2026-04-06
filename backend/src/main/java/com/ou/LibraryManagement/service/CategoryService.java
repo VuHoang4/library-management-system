@@ -3,9 +3,12 @@ package com.ou.LibraryManagement.service;
 import com.ou.LibraryManagement.dto.category.CategoryRequest;
 import com.ou.LibraryManagement.dto.category.CategoryResponse;
 import com.ou.LibraryManagement.entity.Category;
+import com.ou.LibraryManagement.exception.BadRequestException;
 import com.ou.LibraryManagement.exception.NotFoundException;
+import com.ou.LibraryManagement.repository.BookRepository;
 import com.ou.LibraryManagement.repository.CategoryRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -13,10 +16,15 @@ import java.util.List;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final BookRepository bookRepository;
 
-    public CategoryService(CategoryRepository categoryRepository) {
+    public CategoryService(CategoryRepository categoryRepository,
+                           BookRepository bookRepository) {
         this.categoryRepository = categoryRepository;
+        this.bookRepository = bookRepository;
     }
+
+    // ================= QUERY =================
 
     public List<CategoryResponse> findAll(){
         return categoryRepository.findAll()
@@ -26,39 +34,67 @@ public class CategoryService {
     }
 
     public CategoryResponse findById(Long id){
-        Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Category not found with id: " + id));
-
-        return CategoryResponse.fromEntity(category);
+        return CategoryResponse.fromEntity(findEntityById(id));
     }
 
+    // ================= COMMAND =================
+
+    @Transactional
     public CategoryResponse create(CategoryRequest request){
-        Category category = new Category();
 
-        category.setName(request.name());
-        category.setDescription(request.description());
+        validate(request);
 
-        Category saved = categoryRepository.save(category);
-
-        return CategoryResponse.fromEntity(saved);
-    }
-
-    public CategoryResponse update(Long id, CategoryRequest request){
-        Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Category not found with id: " + id));
-
-        category.setName(request.name());
-        category.setDescription(request.description());
-
-        Category updated = categoryRepository.save(category);
-
-        return CategoryResponse.fromEntity(updated);
-    }
-
-    public void deleteById(Long id){
-        if(!categoryRepository.existsById(id)){
-            throw new NotFoundException("Category not found with id: " + id);
+        if(categoryRepository.existsByName(request.name())){
+            throw new BadRequestException("Category already exists");
         }
-        categoryRepository.deleteById(id);
+
+        Category category = new Category();
+        category.setName(request.name());
+        category.setDescription(request.description());
+
+        return CategoryResponse.fromEntity(categoryRepository.save(category));
+    }
+
+    @Transactional
+    public CategoryResponse update(Long id, CategoryRequest request){
+
+        validate(request);
+
+        Category category = findEntityById(id);
+
+        if(categoryRepository.existsByName(request.name())
+                && !category.getName().equals(request.name())){
+            throw new BadRequestException("Category already exists");
+        }
+
+        category.setName(request.name());
+        category.setDescription(request.description());
+
+        return CategoryResponse.fromEntity(categoryRepository.save(category));
+    }
+
+    @Transactional
+    public void deleteById(Long id){
+
+        Category category = findEntityById(id);
+
+        if(bookRepository.existsByCategoryId(id)){
+            throw new BadRequestException("Cannot delete category with existing books");
+        }
+
+        categoryRepository.delete(category);
+    }
+
+    // ================= HELPER =================
+
+    private Category findEntityById(Long id){
+        return categoryRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Category not found with id: " + id));
+    }
+
+    private void validate(CategoryRequest request){
+        if(request.name() == null || request.name().isBlank()){
+            throw new BadRequestException("Category name is required");
+        }
     }
 }

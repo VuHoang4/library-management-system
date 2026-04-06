@@ -2,8 +2,11 @@ package com.ou.LibraryManagement.controller;
 
 import com.ou.LibraryManagement.dto.fine.FineResponse;
 import com.ou.LibraryManagement.service.FineService;
+
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 
@@ -17,27 +20,43 @@ public class FineController {
         this.fineService = fineService;
     }
 
+    // ================= QUERY =================
+
+//    @PreAuthorize("hasAnyAuthority('LIBRARIAN','ADMIN')")
     @GetMapping
     public ResponseEntity<List<FineResponse>> getAll() {
         return ResponseEntity.ok(fineService.findAll());
     }
 
+//    @PreAuthorize("hasAnyAuthority('LIBRARIAN','ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<FineResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(fineService.findById(id));
     }
-    @GetMapping("/user/{userId}")
-    public List<FineResponse> getByUser(@PathVariable Long userId){
-        return fineService.getByUser(userId);
-    }
-    @GetMapping("/user/{userId}/unpaid")
-    public List<FineResponse> getUnpaid(@PathVariable Long userId){
-        return fineService.getUnpaidByUser(userId);
+
+    @GetMapping("/me")
+    public ResponseEntity<List<FineResponse>> getMyFines(Authentication auth){
+        return ResponseEntity.ok(
+                fineService.getByUserEmail(auth.getName())
+        );
     }
 
-//    @DeleteMapping("/{id}")
-//    public ResponseEntity<Void> delete(@PathVariable Long id) {
-//        fineService.deleteById(id);
-//        return ResponseEntity.noContent().build();
-//    }
+    @GetMapping("/me/unpaid")
+    public ResponseEntity<List<FineResponse>> getMyUnpaid(Authentication auth){
+        return ResponseEntity.ok(
+                fineService.getUnpaidByUserEmail(auth.getName())
+        );
+    }
+
+    // ================= ADMIN / LIBRARIAN =================
+
+//    @PreAuthorize("hasAnyAuthority('LIBRARIAN','ADMIN')")
+    @GetMapping("/user/{userId}/unpaid")
+    public ResponseEntity<List<FineResponse>> getUnpaidByUser(
+            @PathVariable Long userId
+    ){
+        return ResponseEntity.ok(
+                fineService.getUnpaidByUserId(userId)
+        );
+    }
 }

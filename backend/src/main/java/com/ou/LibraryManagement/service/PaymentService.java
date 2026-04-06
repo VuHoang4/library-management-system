@@ -61,6 +61,12 @@ public class PaymentService {
 
         return PaymentResponse.fromEntity(payment);
     }
+    public List<PaymentResponse> getByEmail(String email){
+        return paymentRepository.findByUserEmail(email)
+                .stream()
+                .map(PaymentResponse::fromEntity)
+                .toList();
+    }
 
     // ================= COMMAND =================
     @Transactional
@@ -127,6 +133,7 @@ public class PaymentService {
         return momoService.createPayment(orderId, (long) fine.getAmount());
     }
 
+    @Transactional
     public void updateStatus(String orderId, boolean success){
 
         Payment payment = paymentRepository.findByOrderId(orderId)
@@ -143,7 +150,7 @@ public class PaymentService {
             Fine fine = payment.getFine();
 
             //  check amount (anti hack)
-            if(payment.getAmount() != fine.getAmount()){
+            if(Double.compare(payment.getAmount(), fine.getAmount()) != 0){
                 throw new RuntimeException("Amount mismatch");
             }
 
@@ -168,7 +175,7 @@ public class PaymentService {
 
         long amount = (long) (fine.getAmount() * 100);
 
-        String txnRef = String.valueOf(System.currentTimeMillis());
+        String orderId = UUID.randomUUID().toString();
 
         // tạo payment
         Payment payment = new Payment();
@@ -177,7 +184,7 @@ public class PaymentService {
         payment.setAmount(fine.getAmount());
         payment.setMethod("VNPAY");
         payment.setStatus(PaymentStatus.PENDING);
-        payment.setTxnRef(txnRef);
+        payment.setOrderId(orderId);
 
         paymentRepository.save(payment);
 
@@ -190,7 +197,7 @@ public class PaymentService {
         params.put("vnp_Amount", String.valueOf(amount));
         params.put("vnp_CurrCode", "VND");
 
-        params.put("vnp_TxnRef", txnRef);
+        params.put("vnp_TxnRef", orderId);
         params.put("vnp_OrderInfo", "thanh_toan_fine_" + fineId);
         params.put("vnp_OrderType", "other");
 
@@ -218,10 +225,10 @@ public class PaymentService {
         System.out.println("VNPay return params: " + fields);
 
         //  validate param cơ bản
-        String txnRef = request.getParameter("vnp_TxnRef");
+        String orderId = request.getParameter("vnp_TxnRef");
         String responseCode = request.getParameter("vnp_ResponseCode");
 
-        if (txnRef == null || responseCode == null) {
+        if (orderId == null || responseCode == null) {
             return "Missing VNPay parameters";
         }
 
@@ -231,10 +238,10 @@ public class PaymentService {
         }
 
         //  tìm payment
-        Optional<Payment> optionalPayment = paymentRepository.findByTxnRef(txnRef);
+        Optional<Payment> optionalPayment = paymentRepository.findByOrderId(orderId);
 
         if (optionalPayment.isEmpty()) {
-            return "Payment not found with txnRef=" + txnRef;
+            return "Payment not found with txnRef=" + orderId;
         }
 
         Payment payment = optionalPayment.get();

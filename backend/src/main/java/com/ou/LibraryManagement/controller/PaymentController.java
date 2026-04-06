@@ -5,10 +5,14 @@ import com.ou.LibraryManagement.dto.payment.PaymentRequest;
 import com.ou.LibraryManagement.dto.payment.PaymentResponse;
 import com.ou.LibraryManagement.service.PaymentService;
 import com.ou.LibraryManagement.service.momo.MoMoService;
+
 import jakarta.servlet.http.HttpServletRequest;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
 import java.util.Map;
@@ -21,25 +25,29 @@ public class PaymentController {
     private final AppConfig appConfig;
     private final MoMoService momoService;
 
-    public PaymentController(PaymentService paymentService,AppConfig appConfig,MoMoService momoService) {
+    public PaymentController(PaymentService paymentService, AppConfig appConfig, MoMoService momoService) {
         this.paymentService = paymentService;
         this.appConfig = appConfig;
         this.momoService = momoService;
     }
 
-    // 🔹 Lấy tất cả payment
+    // 🔒 ADMIN (xem toàn bộ)
+    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping
     public ResponseEntity<List<PaymentResponse>> getAll(){
         return ResponseEntity.ok(paymentService.findAll());
     }
 
-    // 🔹 Lấy payment theo user
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<PaymentResponse>> getByUser(@PathVariable Long userId){
-        return ResponseEntity.ok(paymentService.getByUser(userId));
+    // 🔓 USER xem payment của mình
+    @GetMapping("/me")
+    public ResponseEntity<List<PaymentResponse>> getMyPayments(Authentication auth){
+        return ResponseEntity.ok(
+                paymentService.getByEmail(auth.getName())
+        );
     }
 
-    // 🔹 Thanh toán fine
+    // 🔓 USER thanh toán fine
+    @PreAuthorize("hasAuthority('USER')")
     @PostMapping
     public ResponseEntity<PaymentResponse> payFine(@RequestBody PaymentRequest request){
         return ResponseEntity
@@ -47,13 +55,14 @@ public class PaymentController {
                 .body(paymentService.payFine(request));
     }
 
-    // 🔹 tạo payment MoMo
+    // 🔓 USER tạo MoMo payment
+    @PreAuthorize("hasAuthority('USER')")
     @PostMapping("/momo")
     public String payWithMoMo(@RequestParam Long fineId) throws Exception {
         return paymentService.createMoMoPayment(fineId);
     }
 
-    // 🔹 callback từ MoMo
+    // 🔓 PUBLIC (callback từ MoMo)
     @PostMapping("/momo-ipn")
     public ResponseEntity<?> momoIPN(@RequestBody Map<String, Object> data) throws Exception {
 
@@ -63,13 +72,13 @@ public class PaymentController {
         int resultCode = Integer.parseInt(data.get("resultCode").toString());
         String signature = (String) data.get("signature");
 
-        //  DEV MODE (cho phép fake)
+        // DEV MODE
         if (!appConfig.momoSecure) {
             paymentService.updateStatus(orderId, resultCode == 0);
             return ResponseEntity.ok().build();
         }
 
-        //  PRODUCTION MODE (verify signature)
+        // PROD MODE
         boolean valid = momoService.verifyIPN(data, signature);
 
         if (!valid) {
@@ -81,12 +90,14 @@ public class PaymentController {
         return ResponseEntity.ok().build();
     }
 
-
+    // 🔓 USER tạo VNPay
+    @PreAuthorize("hasAuthority('USER')")
     @GetMapping("/vnpay")
     public String payVNPay(@RequestParam Long fineId) {
         return paymentService.payWithVNPay(fineId);
     }
 
+    // 🔓 PUBLIC return từ VNPay
     @GetMapping("/vnpay-return")
     public String vnpayReturn(HttpServletRequest request) {
         return paymentService.handleVNPayReturn(request);
