@@ -2,24 +2,30 @@ package com.ou.LibraryManagement.controller;
 
 import com.ou.LibraryManagement.dto.auth.LoginRequest;
 import com.ou.LibraryManagement.dto.auth.LoginResponse;
-import com.ou.LibraryManagement.service.AuthService;
+import com.ou.LibraryManagement.service.AuthService; // Đường dẫn mới
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    @Autowired
-    private AuthService authService;
+    private final AuthService authService;
+
+    // Thay thế @Autowired bằng Constructor Injection
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
 
     @PostMapping("/login")
-    public LoginResponse login(@RequestBody LoginRequest request) {
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
 
-        return authService.login(
+        LoginResponse response = authService.login(
                 request.email(),
                 request.password()
         );
+
+        return ResponseEntity.ok(response);
     }
 }

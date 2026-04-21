@@ -13,10 +13,12 @@ public class CorsConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:5173")
-                        .allowedMethods("*")
-                        .allowedHeaders("*");
+                registry.addMapping("/**") // Áp dụng cho mọi API
+                        .allowedOrigins("http://localhost:5173") // Cổng của React (Frontend)
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // Bắt buộc phải có POST và PUT
+                        .allowedHeaders("*") // Cho phép mọi Header (quan trọng khi gửi kèm JWT Token)
+                        .allowCredentials(true)
+                        .maxAge(3600);
             }
         };
     }

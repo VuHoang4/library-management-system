@@ -3,17 +3,19 @@ package com.ou.LibraryManagement.controller;
 import com.ou.LibraryManagement.config.AppConfig;
 import com.ou.LibraryManagement.dto.payment.PaymentRequest;
 import com.ou.LibraryManagement.dto.payment.PaymentResponse;
+import com.ou.LibraryManagement.mapper.PaymentMapper;
 import com.ou.LibraryManagement.service.PaymentService;
 import com.ou.LibraryManagement.service.momo.MoMoService;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -24,30 +26,39 @@ public class PaymentController {
     private final PaymentService paymentService;
     private final AppConfig appConfig;
     private final MoMoService momoService;
+    private final PaymentMapper paymentMapper;
 
-    public PaymentController(PaymentService paymentService, AppConfig appConfig, MoMoService momoService) {
+    public PaymentController(PaymentService paymentService, AppConfig appConfig, MoMoService momoService, PaymentMapper paymentMapper) {
         this.paymentService = paymentService;
         this.appConfig = appConfig;
         this.momoService = momoService;
+        this.paymentMapper = paymentMapper;
     }
 
     // 🔒 ADMIN (xem toàn bộ)
-    @PreAuthorize("hasAuthority('ADMIN')")
+//    @PreAuthorize("hasAuthority('ADMIN')")
+// 🔓 ADMIN xem tất cả
     @GetMapping
     public ResponseEntity<List<PaymentResponse>> getAll(){
-        return ResponseEntity.ok(paymentService.findAll());
+        List<PaymentResponse> responses = paymentService.findAllEntities()
+                .stream()
+                .map(paymentMapper::toResponse) // 2. Map từ Entity sang Response
+                .toList();
+        return ResponseEntity.ok(responses);
     }
 
     // 🔓 USER xem payment của mình
     @GetMapping("/me")
     public ResponseEntity<List<PaymentResponse>> getMyPayments(Authentication auth){
-        return ResponseEntity.ok(
-                paymentService.getByEmail(auth.getName())
-        );
+        List<PaymentResponse> responses = paymentService.findEntitiesByEmail(auth.getName())
+                .stream()
+                .map(paymentMapper::toResponse) // 3. Tương tự, map ở đây
+                .toList();
+        return ResponseEntity.ok(responses);
     }
 
     // 🔓 USER thanh toán fine
-    @PreAuthorize("hasAuthority('USER')")
+//    @PreAuthorize("hasAuthority('USER')")
     @PostMapping
     public ResponseEntity<PaymentResponse> payFine(@RequestBody PaymentRequest request){
         return ResponseEntity
@@ -56,7 +67,7 @@ public class PaymentController {
     }
 
     // 🔓 USER tạo MoMo payment
-    @PreAuthorize("hasAuthority('USER')")
+//    @PreAuthorize("hasAuthority('USER')")
     @PostMapping("/momo")
     public String payWithMoMo(@RequestParam Long fineId) throws Exception {
         return paymentService.createMoMoPayment(fineId);
@@ -91,7 +102,7 @@ public class PaymentController {
     }
 
     // 🔓 USER tạo VNPay
-    @PreAuthorize("hasAuthority('USER')")
+//    @PreAuthorize("hasAuthority('USER')")
     @GetMapping("/vnpay")
     public String payVNPay(@RequestParam Long fineId) {
         return paymentService.payWithVNPay(fineId);
@@ -99,7 +110,11 @@ public class PaymentController {
 
     // 🔓 PUBLIC return từ VNPay
     @GetMapping("/vnpay-return")
-    public String vnpayReturn(HttpServletRequest request) {
-        return paymentService.handleVNPayReturn(request);
+    public void vnpayReturn(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        // Lấy URL từ logic xử lý của Service
+        String redirectUrl = paymentService.handleVNPayReturn(request);
+
+        // Bắn lệnh Redirect để đẩy người dùng về lại React (localhost:3000)
+        response.sendRedirect(redirectUrl);
     }
 }

@@ -2,8 +2,9 @@ package com.ou.LibraryManagement.controller;
 
 import com.ou.LibraryManagement.dto.publisher.PublisherRequest;
 import com.ou.LibraryManagement.dto.publisher.PublisherResponse;
-import com.ou.LibraryManagement.service.PublisherService;
 
+
+import com.ou.LibraryManagement.service.PublisherService;
 import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
@@ -23,42 +24,40 @@ public class PublisherController {
         this.publisherService = publisherService;
     }
 
-    //  USER + LIBRARIAN + ADMIN
+    // ===== READER =====
+
     @GetMapping
     public ResponseEntity<List<PublisherResponse>> getAll() {
-        return ResponseEntity.ok(publisherService.findAll());
+        return ResponseEntity.ok(publisherService.getAll());
     }
 
-    //  USER + LIBRARIAN + ADMIN
     @GetMapping("/{id}")
     public ResponseEntity<PublisherResponse> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(publisherService.findById(id));
+        return ResponseEntity.ok(publisherService.getById(id));
     }
 
-    //  LIBRARIAN + ADMIN
-//    @PreAuthorize("hasAnyAuthority('LIBRARIAN','ADMIN')")
+    // ===== ADMIN =====
+
+   // @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<PublisherResponse> create(@Valid @RequestBody PublisherRequest request) {
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
+        return ResponseEntity.status(HttpStatus.CREATED)
                 .body(publisherService.create(request));
     }
 
-    //  LIBRARIAN + ADMIN
-//    @PreAuthorize("hasAnyAuthority('LIBRARIAN','ADMIN')")
+   // @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<PublisherResponse> update(
-            @PathVariable Long id,
-            @Valid @RequestBody PublisherRequest request
-    ) {
-        return ResponseEntity.ok(publisherService.update(id, request));
+    public ResponseEntity<PublisherResponse> update(@PathVariable Long id,
+                                                    @Valid @RequestBody PublisherRequest request) {
+        return ResponseEntity.ok(
+                publisherService.update(id, request)
+        );
     }
 
-    //  ADMIN only
-//    @PreAuthorize("hasAuthority('ADMIN')")
+  //  @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        publisherService.deleteById(id);
+        publisherService.delete(id);
         return ResponseEntity.noContent().build();
     }
 }

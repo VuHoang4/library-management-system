@@ -5,74 +5,76 @@ import com.ou.LibraryManagement.dto.notification.NotificationResponse;
 import com.ou.LibraryManagement.entity.Notification;
 import com.ou.LibraryManagement.entity.User;
 import com.ou.LibraryManagement.exception.NotFoundException;
+import com.ou.LibraryManagement.mapper.NotificationMapper;
 import com.ou.LibraryManagement.repository.NotificationRepository;
-import com.ou.LibraryManagement.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-
 @Service
 public class NotificationService {
 
     private final NotificationRepository repository;
-    private final UserRepository userRepository;
+    private final UserService userService;
+    private final NotificationMapper notificationMapper;
 
-    public NotificationService(
-            NotificationRepository repository,
-            UserRepository userRepository
-    ) {
+    public NotificationService(NotificationRepository repository,
+                               UserService userService,
+                               NotificationMapper notificationMapper) {
         this.repository = repository;
-        this.userRepository = userRepository;
+        this.userService = userService;
+        this.notificationMapper = notificationMapper;
     }
 
-    public List<NotificationResponse> getAll() {
-        return repository.findAll()
-                .stream()
-                .map(NotificationResponse::fromEntity)
-                .toList();
+    public Notification save(Notification notification) {
+        return repository.save(notification);
     }
 
-    public List<NotificationResponse> getByUser(Long userId){
-        return repository.findByUserId(userId)
-                .stream()
-                .map(NotificationResponse::fromEntity)
-                .toList();
-    }
+    // ================== ADMIN ==================
 
-    public NotificationResponse create(NotificationRequest request){
-
-        User user = userRepository.findById(request.userId())
-                .orElseThrow(() -> new NotFoundException("User not found"));
+    @Transactional
+    public void sendManualNotification(NotificationRequest request) {
+        User user = userService.findEntityById(request.userId());
 
         Notification notification = new Notification();
         notification.setUser(user);
-
-        // SỬA
         notification.setTitle(request.title());
         notification.setContent(request.content());
-
-        Notification saved = repository.save(notification);
-
-        return NotificationResponse.fromEntity(saved);
-    }
-
-    public void notifyUser(Long userId, String title, String content){
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
-
-        Notification notification = new Notification();
-        notification.setUser(user);
-        notification.setTitle(title);
-        notification.setContent(content);
+        notification.setType(request.type());
 
         repository.save(notification);
     }
 
-    public List<NotificationResponse> getByEmail(String email){
-        return repository.findByUserEmail(email)
+    // ================== READER ==================
+
+    public List<NotificationResponse> getMyNotifications(String email) {
+        return repository.findByUserEmailOrderByCreatedAtDesc(email)
                 .stream()
-                .map(NotificationResponse::fromEntity)
+                .map(notificationMapper::toResponse)
                 .toList();
+    }
+
+    @Transactional
+    public void markAsRead(Long id) {
+        Notification notification = findEntityById(id);
+        notification.setRead(true);
+        repository.save(notification);
+    }
+
+    @Transactional
+    public void markAllAsRead(String email) {
+        List<Notification> unreadList =
+                repository.findByUserEmailAndIsReadFalse(email);
+
+        unreadList.forEach(n -> n.setRead(true));
+        repository.saveAll(unreadList);
+    }
+
+    // ================== INTERNAL ==================
+
+    public Notification findEntityById(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() ->
+                        new NotFoundException("Không tìm thấy thông báo!"));
     }
 }

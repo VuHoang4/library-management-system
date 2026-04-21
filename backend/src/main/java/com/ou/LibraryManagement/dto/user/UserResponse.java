@@ -1,24 +1,21 @@
 package com.ou.LibraryManagement.dto.user;
 
-import com.ou.LibraryManagement.entity.User;
+import java.time.LocalDateTime;
 
 public record UserResponse(
-
         Long id,
         String name,
         String email,
+        String phone,
+        String address,
+        String avatarUrl,
+
+        // Dữ liệu từ bảng Role
         Long roleId,
-        String role
+        String roleName,
 
-) {
-
-    public static UserResponse fromEntity(User user){
-        return new UserResponse(
-                user.getId(),
-                user.getName(),
-                user.getEmail(),
-                user.getRole() != null ? user.getRole().getId() : null,
-                user.getRole() != null ? user.getRole().getName() : null
-        );
-    }
-}
+        //  THÊM: Trạng thái và thời gian hệ thống
+        boolean active,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
+) {}

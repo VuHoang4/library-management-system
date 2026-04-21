@@ -22,28 +22,39 @@ public class Book {
     private String isbn;
 
     private int quantity;
+
     private String imageUrl;
+
+    // THEM: Tom tat noi dung sach
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    // THEM: Nam xuat ban
+    private Integer publishedYear;
+
+    // THEM: Co xoa mem (Soft Delete) de khong bi loi rang buoc khoa ngoai khi xoa sach da co luot muon
+    @Column(nullable = false)
+    private boolean isActive = true;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
 
-    @ManyToOne
+    // THEM: fetch = FetchType.LAZY de toi uu hieu nang
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id")
     private Author author;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Category category;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "publisher_id")
     private Publisher publisher;
 
     public Book() {}
-
-    // getters setters
 
     @PrePersist
     public void prePersist() {

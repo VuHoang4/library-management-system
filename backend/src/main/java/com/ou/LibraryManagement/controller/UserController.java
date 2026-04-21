@@ -1,17 +1,18 @@
 package com.ou.LibraryManagement.controller;
 
-import com.ou.LibraryManagement.dto.user.UserRequest;
-import com.ou.LibraryManagement.dto.user.UserResponse;
-import com.ou.LibraryManagement.service.UserService;
+import com.ou.LibraryManagement.dto.user.*;
 
+import com.ou.LibraryManagement.mapper.UserMapper;
+import com.ou.LibraryManagement.service.UserService;
 import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 
+
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -19,56 +20,70 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final UserMapper userMapper;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, UserMapper userMapper) {
         this.userService = userService;
+        this.userMapper = userMapper;
     }
 
-    // 🔒 ADMIN only (xem tất cả user)
-    @PreAuthorize("hasAuthority('ADMIN')")
-    @GetMapping
-    public ResponseEntity<List<UserResponse>> getAll() {
-        return ResponseEntity.ok(userService.findAll());
+    // ================= ADMIN =================
+
+   // @PreAuthorize("hasRole('ADMIN')")
+//    @GetMapping
+//    public ResponseEntity<List<UserResponse>> getAll() {
+//        return ResponseEntity.ok(userService.getAllUsers());
+//    }
+
+    @GetMapping("/readers")
+    public ResponseEntity<List<UserResponse>> getReaders(
+            @RequestParam(required = false) String search
+    ) {
+        return ResponseEntity.ok(userService.searchReaders(search));
     }
 
-    // 🔒 ADMIN only
-    @PreAuthorize("hasAuthority('ADMIN')")
-    @GetMapping("/{id}")
-    public ResponseEntity<UserResponse> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.findById(id));
-    }
-
-    // 🔓 PUBLIC (đăng ký user mới)
+   // @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<UserResponse> create(@Valid @RequestBody UserRequest request) {
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(userService.create(request));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(userService.createUser(request));
     }
 
-    // 🔓  ADMIN
-    @PreAuthorize("hasAuthority('ADMIN')")
+  //  @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<UserResponse> update(
-            @PathVariable Long id,
-            @Valid @RequestBody UserRequest request
-    ) {
-        return ResponseEntity.ok(userService.update(id, request));
+    public ResponseEntity<UserResponse> update(@PathVariable Long id,
+                                               @Valid @RequestBody UserRequest request) {
+        return ResponseEntity.ok(userService.updateUser(id, request));
     }
 
-    // 🔒 ADMIN only
-    @PreAuthorize("hasAuthority('ADMIN')")
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        userService.deleteById(id);
-        return ResponseEntity.noContent().build();
-    }
+    // ================= CURRENT USER =================
 
-    // 🔓 USER lấy thông tin của mình
+   // @PreAuthorize("isAuthenticated()")
     @GetMapping("/me")
-    public ResponseEntity<UserResponse> getMe(Authentication auth){
+    public ResponseEntity<UserResponse> getMe(Principal principal) {
+        return userService.findEntityByEmail(principal.getName())
+                .map(user -> ResponseEntity.ok(userMapper.toResponse(user)))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+   // @PreAuthorize("isAuthenticated()")
+    @PutMapping("/me")
+    public ResponseEntity<UserResponse> updateProfile(
+            Principal principal,
+            @Valid @RequestBody ProfileUpdateRequest request) {
+
         return ResponseEntity.ok(
-                userService.getByEmail(auth.getName())
+                userService.updateProfile(principal.getName(), request)
         );
+    }
+
+   // @PreAuthorize("isAuthenticated()")
+    @PutMapping("/me/password")
+    public ResponseEntity<Void> changePassword(
+            Principal principal,
+            @Valid @RequestBody ChangePasswordRequest request) {
+
+        userService.changePassword(principal.getName(), request);
+        return ResponseEntity.ok().build();
     }
 }

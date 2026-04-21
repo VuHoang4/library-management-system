@@ -1,46 +1,46 @@
 package com.ou.LibraryManagement.controller;
 
-import com.ou.LibraryManagement.dto.notification.NotificationRequest;
 import com.ou.LibraryManagement.dto.notification.NotificationResponse;
 import com.ou.LibraryManagement.service.NotificationService;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.access.prepost.PreAuthorize;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/notifications")
 public class NotificationController {
 
-    private final NotificationService service;
+    private final NotificationService notificationService;
 
-    public NotificationController(NotificationService service){
-        this.service = service;
+    public NotificationController(NotificationService NotificationService) {
+        this.notificationService = NotificationService;
     }
 
-    // 🔒 ADMIN (xem toàn bộ)
-    @PreAuthorize("hasAuthority('ADMIN')")
-    @GetMapping
-    public ResponseEntity<List<NotificationResponse>> getAll(){
-        return ResponseEntity.ok(service.getAll());
-    }
+    // ================= USER NOTIFICATIONS =================
 
-    // 🔓 USER xem notification của mình
     @GetMapping("/me")
-    public ResponseEntity<List<NotificationResponse>> getMyNotifications(Authentication auth){
-        return ResponseEntity.ok(service.getByEmail(auth.getName()));
+ //   @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<NotificationResponse>> getMyNotifications(Principal principal) {
+        return ResponseEntity.ok(
+                notificationService.getMyNotifications(principal.getName())
+        );
     }
 
-    // 🔒 ADMIN + LIBRARIAN (tạo notification)
-    @PreAuthorize("hasAnyAuthority('ADMIN','LIBRARIAN')")
-    @PostMapping
-    public ResponseEntity<NotificationResponse> create(@RequestBody NotificationRequest request){
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(service.create(request));
+    @PutMapping("/{id}/read")
+ //   @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> markAsRead(@PathVariable Long id) {
+        notificationService.markAsRead(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/read-all")
+   // @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> markAllAsRead(Principal principal) {
+        notificationService.markAllAsRead(principal.getName());
+        return ResponseEntity.ok().build();
     }
 }

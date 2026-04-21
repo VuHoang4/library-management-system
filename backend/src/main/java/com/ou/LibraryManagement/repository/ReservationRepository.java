@@ -6,6 +6,7 @@ import com.ou.LibraryManagement.entity.enums.ReservationStatus;
 import com.ou.LibraryManagement.entity.enums.ReservationType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -39,4 +40,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     boolean existsByBookIdAndTypeAndStatus(Long id, ReservationType reservationType, ReservationStatus reservationStatus);
 
     int countByBookIdAndTypeAndStatus(Long id, ReservationType reservationType, ReservationStatus reservationStatus);
+
+    @Query("SELECT COUNT(r) FROM Reservation r WHERE r.user.id = :userId AND r.status IN ('PENDING', 'HOLDING')")
+    int countActiveReservationsByUserId(@Param("userId") Long userId);
+    List<Reservation> findByUserEmailOrderByReservationDateDesc(String email);
 }

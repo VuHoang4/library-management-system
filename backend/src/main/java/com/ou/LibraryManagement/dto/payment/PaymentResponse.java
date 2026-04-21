@@ -1,31 +1,16 @@
 package com.ou.LibraryManagement.dto.payment;
 
-import com.ou.LibraryManagement.entity.Payment;
 import com.ou.LibraryManagement.entity.enums.PaymentStatus;
-
 import java.time.LocalDateTime;
 
 public record PaymentResponse(
-
         Long id,
         double amount,
         String method,
-        String orderId,
+        String orderId, // Mã giao dịch từ cổng thanh toán
         PaymentStatus status,
-        Long fineId,
-        LocalDateTime createdAt
-
-) {
-
-    public static PaymentResponse fromEntity(Payment payment){
-        return new PaymentResponse(
-                payment.getId(),
-                payment.getAmount(),
-                payment.getMethod(),
-                payment.getOrderId(),
-                payment.getStatus(),
-                payment.getFine().getId(),
-                payment.getCreatedAt()
-        );
-    }
-}
+        String reason,    // Lý do phạt lấy từ bảng Fine
+        String userName,  // Tên người thanh toán
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
+) {}

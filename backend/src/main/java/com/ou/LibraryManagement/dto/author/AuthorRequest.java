@@ -5,10 +5,13 @@ import jakarta.validation.constraints.Size;
 
 public record AuthorRequest(
 
-        @NotBlank(message = "Author name không được để trống")
+        @NotBlank(message = "Tên tác giả không được để trống")
         @Size(max = 255)
         String name,
 
-        String bio
+        String bio,
+
+        // Bổ sung thêm trường ảnh
+        String imageUrl
 
 ) {}

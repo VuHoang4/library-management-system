@@ -2,67 +2,62 @@ package com.ou.LibraryManagement.controller;
 
 import com.ou.LibraryManagement.dto.borrow.BorrowRequest;
 import com.ou.LibraryManagement.dto.borrow.BorrowResponse;
-import com.ou.LibraryManagement.service.LibraryService;
+
 import com.ou.LibraryManagement.service.BorrowService;
+import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/borrow")
+@RequestMapping("/api/borrows")
 public class BorrowController {
 
-    private final LibraryService libraryService;
     private final BorrowService borrowService;
 
-    public BorrowController(LibraryService libraryService,
-                            BorrowService borrowService) {
-        this.libraryService = libraryService;
+    public BorrowController(BorrowService borrowService) {
         this.borrowService = borrowService;
     }
 
-    // ================= QUERY =================
+    // ================= LIBRARIAN =================
 
+  //  @PreAuthorize("hasAnyRole('THU_THU','ADMIN')")
     @GetMapping
     public ResponseEntity<List<BorrowResponse>> getAll() {
-        return ResponseEntity.ok(
-                borrowService.findAll()
-                        .stream()
-                        .map(BorrowResponse::fromEntity)
-                        .toList()
-        );
+        return ResponseEntity.ok(borrowService.getAll());
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<BorrowResponse>> getUserBorrow(@PathVariable Long userId) {
-        return ResponseEntity.ok(
-                borrowService.getByUser(userId)
-                        .stream()
-                        .map(BorrowResponse::fromEntity)
-                        .toList()
-        );
-    }
-
-    // ================= COMMAND =================
-
+ //   @PreAuthorize("hasAnyRole('THU_THU','ADMIN')")
     @PostMapping
-    public ResponseEntity<BorrowResponse> borrowBook(@RequestBody BorrowRequest request) {
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(libraryService.borrowBook(request));
+    public ResponseEntity<BorrowResponse> borrowBook(@Valid @RequestBody BorrowRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(borrowService.borrowBook(request));
     }
 
-    @PutMapping("/return/{id}")
+  //  @PreAuthorize("hasAnyRole('THU_THU','ADMIN')")
+    @PutMapping("/{id}/return")
     public ResponseEntity<BorrowResponse> returnBook(@PathVariable Long id) {
-        return ResponseEntity.ok(libraryService.returnBook(id));
+        return ResponseEntity.ok(borrowService.returnBook(id));
     }
 
+  //  @PreAuthorize("hasAnyRole('THU_THU','ADMIN')")
     @PutMapping("/{id}/renew")
-    public ResponseEntity<BorrowResponse> renew(@PathVariable Long id){
-        return ResponseEntity.ok(libraryService.renewBook(id));
+    public ResponseEntity<BorrowResponse> renew(@PathVariable Long id) {
+        return ResponseEntity.ok(borrowService.renewBook(id));
+    }
+
+    // ================= READER =================
+
+  //  @PreAuthorize("isAuthenticated()")
+    @GetMapping("/me")
+    public ResponseEntity<List<BorrowResponse>> getMyBorrows(Principal principal) {
+        return ResponseEntity.ok(
+                borrowService.getMyBorrows(principal.getName())
+        );
     }
 }

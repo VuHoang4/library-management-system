@@ -1,25 +1,40 @@
 package com.ou.LibraryManagement.mapper;
 
+import com.ou.LibraryManagement.dto.book.BookDetailResponse;
 import com.ou.LibraryManagement.dto.book.BookResponse;
 import com.ou.LibraryManagement.entity.Book;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-@Component
-public class BookMapper {
+// componentModel = "spring" giúp Spring tự động tạo ra một Bean (giống hệt @Component)
+@Mapper(componentModel = "spring")
+public interface BookMapper {
 
+    // 1. Dành cho Admin / Khách vãng lai
+    @Mapping(target = "author", source = "book.author.name") // MapStruct tự động lo việc check null!
+    @Mapping(target = "category", source = "book.category.name")
+    @Mapping(target = "publisher", source = "book.publisher.name")
+    @Mapping(target = "available", source = "available") // Lấy từ tham số truyền vào
+    @Mapping(target = "userReservationStatus", ignore = true)
+    @Mapping(target = "userBorrowStatus", ignore = true)
+    BookResponse toResponseBasic(Book book, int available);
 
+    // 2. Dành cho Reader (Độc giả đã đăng nhập)
+    @Mapping(target = "author", source = "book.author.name")
+    @Mapping(target = "category", source = "book.category.name")
+    @Mapping(target = "publisher", source = "book.publisher.name")
+    @Mapping(target = "available", source = "available")
+    @Mapping(target = "userReservationStatus", source = "userReservationStatus") // Lấy từ tham số
+    @Mapping(target = "userBorrowStatus", source = "userBorrowStatus")           // Lấy từ tham số
+    BookResponse toResponseReader(Book book, int available, String userReservationStatus, String userBorrowStatus);
 
-        public BookResponse toResponse(Book book, int available, String userReservationStatus) {
-            return new BookResponse(
-                    book.getId(),
-                    book.getTitle(),
-                    book.getIsbn(),
-                    book.getImageUrl(),
-                    book.getAuthor() != null ? book.getAuthor().getName() : null,
-                    book.getCategory() != null ? book.getCategory().getName() : null,
-                    available,
-                    userReservationStatus
-            );
-        }
-
+    // 2. Dành cho Reader (Độc giả đã đăng nhập)
+    @Mapping(target = "available", source = "available") // Lấy từ tham số truyền vào
+    @Mapping(target = "author", source = "book.author.name")
+    @Mapping(target = "category", source = "book.category.name")
+    @Mapping(target = "publisher", source = "book.publisher.name")
+    @Mapping(target = "authorId", source = "book.author.id")
+    @Mapping(target = "categoryId", source = "book.category.id")
+    @Mapping(target = "publisherId", source = "book.publisher.id")
+    BookDetailResponse toDetailResponse(Book book, int available);
 }

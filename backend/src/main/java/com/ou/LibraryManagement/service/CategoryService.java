@@ -5,96 +5,87 @@ import com.ou.LibraryManagement.dto.category.CategoryResponse;
 import com.ou.LibraryManagement.entity.Category;
 import com.ou.LibraryManagement.exception.BadRequestException;
 import com.ou.LibraryManagement.exception.NotFoundException;
+import com.ou.LibraryManagement.mapper.CategoryMapper;
 import com.ou.LibraryManagement.repository.BookRepository;
 import com.ou.LibraryManagement.repository.CategoryRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-
 @Service
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
     private final BookRepository bookRepository;
+    private final CategoryMapper categoryMapper;
 
     public CategoryService(CategoryRepository categoryRepository,
-                           BookRepository bookRepository) {
+                           BookRepository bookRepository,
+                           CategoryMapper categoryMapper) {
         this.categoryRepository = categoryRepository;
         this.bookRepository = bookRepository;
+        this.categoryMapper = categoryMapper;
     }
 
-    // ================= QUERY =================
+    // ================== READ ==================
 
-    public List<CategoryResponse> findAll(){
-        return categoryRepository.findAll()
+    public List<CategoryResponse> getAll() {
+        return categoryRepository.findAllByIsActiveTrue()
                 .stream()
-                .map(CategoryResponse::fromEntity)
+                .map(categoryMapper::toResponse)
                 .toList();
     }
 
-    public CategoryResponse findById(Long id){
-        return CategoryResponse.fromEntity(findEntityById(id));
+    public CategoryResponse getById(Long id) {
+        return categoryMapper.toResponse(findEntityById(id));
     }
 
-    // ================= COMMAND =================
+    // ================== INTERNAL ==================
 
-    @Transactional
-    public CategoryResponse create(CategoryRequest request){
-
-        validate(request);
-
-        if(categoryRepository.existsByName(request.name())){
-            throw new BadRequestException("Category already exists");
-        }
-
-        Category category = new Category();
-        category.setName(request.name());
-        category.setDescription(request.description());
-
-        return CategoryResponse.fromEntity(categoryRepository.save(category));
-    }
-
-    @Transactional
-    public CategoryResponse update(Long id, CategoryRequest request){
-
-        validate(request);
-
-        Category category = findEntityById(id);
-
-        if(categoryRepository.existsByName(request.name())
-                && !category.getName().equals(request.name())){
-            throw new BadRequestException("Category already exists");
-        }
-
-        category.setName(request.name());
-        category.setDescription(request.description());
-
-        return CategoryResponse.fromEntity(categoryRepository.save(category));
-    }
-
-    @Transactional
-    public void deleteById(Long id){
-
-        Category category = findEntityById(id);
-
-        if(bookRepository.existsByCategoryId(id)){
-            throw new BadRequestException("Cannot delete category with existing books");
-        }
-
-        categoryRepository.delete(category);
-    }
-
-    // ================= HELPER =================
-
-    private Category findEntityById(Long id){
+    public Category findEntityById(Long id) {
         return categoryRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Category not found with id: " + id));
+                .orElseThrow(() ->
+                        new NotFoundException("Không tìm thấy thể loại với id: " + id));
     }
 
-    private void validate(CategoryRequest request){
-        if(request.name() == null || request.name().isBlank()){
-            throw new BadRequestException("Category name is required");
+    private boolean isNameExisted(String name) {
+        return categoryRepository.existsByNameAndIsActiveTrue(name);
+    }
+
+    // ================== ADMIN ==================
+
+    @Transactional
+    public CategoryResponse create(CategoryRequest request) {
+        if (isNameExisted(request.name())) {
+            throw new BadRequestException("Thể loại đã tồn tại!");
         }
+
+        Category category = categoryMapper.toEntity(request);
+        return categoryMapper.toResponse(categoryRepository.save(category));
+    }
+
+    @Transactional
+    public CategoryResponse update(Long id, CategoryRequest request) {
+        Category category = findEntityById(id);
+
+        if (isNameExisted(request.name())
+                && !category.getName().equals(request.name())) {
+            throw new BadRequestException("Tên thể loại bị trùng!");
+        }
+
+        categoryMapper.updateEntityFromRequest(request, category);
+        return categoryMapper.toResponse(categoryRepository.save(category));
+    }
+
+    @Transactional
+    public void delete(Long id) {
+        Category category = findEntityById(id);
+
+        if (bookRepository.existsByCategoryId(id)) {
+            throw new BadRequestException("Không thể xóa vì đang có sách!");
+        }
+
+        category.setActive(false);
+        categoryRepository.save(category);
     }
 }

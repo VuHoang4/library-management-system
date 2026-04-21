@@ -7,18 +7,23 @@ import jakarta.validation.constraints.Size;
 
 public record UserRequest(
 
-        @NotBlank(message = "Name không được để trống")
+        @NotBlank(message = "Tên không được để trống")
         String name,
 
         @Email(message = "Email không hợp lệ")
-        @NotBlank
+        @NotBlank(message = "Email không được để trống")
         String email,
 
-        @NotBlank
-        @Size(min = 6, message = "Password tối thiểu 6 ký tự")
+        @NotBlank(message = "Mật khẩu không được để trống")
+        @Size(min = 6, message = "Mật khẩu tối thiểu 6 ký tự")
         String password,
 
-        @NotNull(message = "RoleId không được null")
-        Long roleId
+        @NotNull(message = "ID quyền (Role) không được để trống")
+        Long roleId,
+
+        //  THÊM: Các thông tin bổ sung
+        String phone,
+        String address,
+        String avatarUrl
 
 ) {}

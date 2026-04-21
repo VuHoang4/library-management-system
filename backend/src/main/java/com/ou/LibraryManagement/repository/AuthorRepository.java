@@ -1,10 +1,15 @@
 package com.ou.LibraryManagement.repository;
 
 import com.ou.LibraryManagement.entity.Author;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import java.util.List;
 
+@Repository
 public interface AuthorRepository extends JpaRepository<Author, Long> {
-    boolean existsByName(@NotBlank(message = "Author name không được để trống") @Size(max = 255) String name);
+    // Chỉ lấy những tác giả đang hoạt động (Soft Delete)
+    List<Author> findAllByIsActiveTrue();
+
+    // Kiểm tra trùng tên cho các tác giả đang active
+    boolean existsByNameAndIsActiveTrue(String name);
 }

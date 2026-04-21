@@ -12,6 +12,18 @@
     "expect": 201
   },
   {
+    "name": "Create USER",
+    "method": "POST",
+    "path": "/api/users",
+    "body": {
+      "name": "Regular User2",
+      "email": "user2@gmail.com",
+      "password": "123456",
+      "roleId": 3
+    },
+    "expect": 201
+  },
+  {
     "name": "Create LIBRARIAN",
     "method": "POST",
     "path": "/api/users",

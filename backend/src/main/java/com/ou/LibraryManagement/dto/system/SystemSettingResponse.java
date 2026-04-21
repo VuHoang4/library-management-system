@@ -1,17 +1,13 @@
 package com.ou.LibraryManagement.dto.system;
 
-import com.ou.LibraryManagement.entity.SystemSetting;
+import java.time.LocalDateTime;
 
 public record SystemSettingResponse(
         Long id,
         int borrowDays,
-        double finePerDay
-) {
-    public static SystemSettingResponse fromEntity(SystemSetting s){
-        return new SystemSettingResponse(
-                s.getId(),
-                s.getBorrowDays(),
-                s.getFinePerDay()
-        );
-    }
-}
+        double finePerDay,
+        int maxRenew,
+        boolean active,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
+) {}

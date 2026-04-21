@@ -5,6 +5,7 @@ import com.ou.LibraryManagement.dto.author.AuthorResponse;
 import com.ou.LibraryManagement.entity.Author;
 import com.ou.LibraryManagement.exception.BadRequestException;
 import com.ou.LibraryManagement.exception.NotFoundException;
+import com.ou.LibraryManagement.mapper.AuthorMapper;
 import com.ou.LibraryManagement.repository.AuthorRepository;
 import com.ou.LibraryManagement.repository.BookRepository;
 import org.springframework.stereotype.Service;
@@ -16,89 +17,76 @@ import java.util.List;
 public class AuthorService {
 
     private final AuthorRepository authorRepository;
+    private final AuthorMapper authorMapper;
     private final BookRepository bookRepository;
 
     public AuthorService(AuthorRepository authorRepository,
+                         AuthorMapper authorMapper,
                          BookRepository bookRepository) {
         this.authorRepository = authorRepository;
+        this.authorMapper = authorMapper;
         this.bookRepository = bookRepository;
     }
 
-    // ================= QUERY =================
+    // ================== READ ==================
 
-    public List<AuthorResponse> findAll() {
-        return authorRepository.findAll()
+    public List<AuthorResponse> getAll() {
+        return authorRepository.findAllByIsActiveTrue()
                 .stream()
-                .map(AuthorResponse::fromEntity)
+                .map(authorMapper::toResponse)
                 .toList();
     }
 
-    public AuthorResponse findById(Long id) {
-        return AuthorResponse.fromEntity(findEntityById(id));
+    public AuthorResponse getById(Long id) {
+        return authorMapper.toResponse(findEntityById(id));
     }
 
-    // ================= COMMAND =================
+    // ================== INTERNAL ==================
+
+    public Author findEntityById(Long id) {
+        return authorRepository.findById(id)
+                .orElseThrow(() ->
+                        new NotFoundException("Không tìm thấy tác giả với ID: " + id));
+    }
+
+    private boolean isNameExisted(String name) {
+        return authorRepository.existsByNameAndIsActiveTrue(name);
+    }
+
+    // ================== ADMIN ==================
 
     @Transactional
     public AuthorResponse create(AuthorRequest request) {
-
-        validateRequest(request);
-
-        if(authorRepository.existsByName(request.name())){
-            throw new BadRequestException("Author already exists");
+        if (isNameExisted(request.name())) {
+            throw new BadRequestException("Tác giả này đã tồn tại!");
         }
 
-        Author author = new Author();
-        author.setName(request.name());
-        author.setBio(request.bio());
-
-        return AuthorResponse.fromEntity(authorRepository.save(author));
+        Author author = authorMapper.toEntity(request);
+        return authorMapper.toResponse(authorRepository.save(author));
     }
 
     @Transactional
     public AuthorResponse update(Long id, AuthorRequest request) {
-
-        validateRequest(request);
-
         Author author = findEntityById(id);
 
-        // check duplicate (exclude itself)
-        if(authorRepository.existsByName(request.name())
-                && !author.getName().equals(request.name())){
-            throw new BadRequestException("Author already exists");
+        if (isNameExisted(request.name())
+                && !author.getName().equals(request.name())) {
+            throw new BadRequestException("Tên tác giả mới đã bị trùng!");
         }
 
-        author.setName(request.name());
-        author.setBio(request.bio());
-
-        return AuthorResponse.fromEntity(authorRepository.save(author));
+        authorMapper.updateEntityFromRequest(request, author);
+        return authorMapper.toResponse(authorRepository.save(author));
     }
 
     @Transactional
-    public void deleteById(Long id) {
-
+    public void delete(Long id) {
         Author author = findEntityById(id);
 
-        boolean hasBook = bookRepository.existsByAuthorId(id);
-
-        if(hasBook){
-            throw new BadRequestException("Cannot delete author with existing books");
+        if (bookRepository.existsByAuthorId(id)) {
+            throw new BadRequestException("Không thể xóa tác giả đang có sách!");
         }
 
-        authorRepository.delete(author);
-    }
-
-    // ================= HELPER =================
-
-    private Author findEntityById(Long id){
-        return authorRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Author not found with id: " + id));
-    }
-
-    private void validateRequest(AuthorRequest request){
-
-        if(request.name() == null || request.name().isBlank()){
-            throw new BadRequestException("Author name is required");
-        }
+        author.setActive(false);
+        authorRepository.save(author);
     }
 }

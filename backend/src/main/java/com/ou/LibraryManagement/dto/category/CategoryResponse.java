@@ -1,20 +1,15 @@
 package com.ou.LibraryManagement.dto.category;
 
-import com.ou.LibraryManagement.entity.Category;
+import java.time.LocalDateTime;
 
 public record CategoryResponse(
-
         Long id,
         String name,
-        String description
+        String description,
 
-) {
-
-    public static CategoryResponse fromEntity(Category category){
-        return new CategoryResponse(
-                category.getId(),
-                category.getName(),
-                category.getDescription()
-        );
-    }
-}
+        //  THÊM: Các trường mới khớp với Entity
+        String imageUrl,
+        boolean isActive,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
+) {}

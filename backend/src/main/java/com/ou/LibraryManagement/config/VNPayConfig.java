@@ -13,5 +13,5 @@ public class VNPayConfig {
 
 
     public static final String vnp_ReturnUrl =
-            " https://pottery-sounds-serving-stomach.trycloudflare.com/api/payments/vnpay-return";
+            "https://remaining-domains-concentrate-ssl.trycloudflare.com/api/payments/vnpay-return";
 }

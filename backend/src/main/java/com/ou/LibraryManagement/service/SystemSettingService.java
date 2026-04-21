@@ -4,41 +4,71 @@ import com.ou.LibraryManagement.dto.system.SystemSettingRequest;
 import com.ou.LibraryManagement.dto.system.SystemSettingResponse;
 import com.ou.LibraryManagement.entity.SystemSetting;
 import com.ou.LibraryManagement.exception.NotFoundException;
+import com.ou.LibraryManagement.mapper.SystemSettingMapper;
 import com.ou.LibraryManagement.repository.SystemSettingRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 public class SystemSettingService {
 
     private final SystemSettingRepository repository;
+    private final SystemSettingMapper mapper;
 
-    public SystemSettingService(SystemSettingRepository repository) {
+    public SystemSettingService(SystemSettingRepository repository,
+                                SystemSettingMapper mapper) {
         this.repository = repository;
+        this.mapper = mapper;
+    }
+
+    // ================== READ ==================
+
+    public List<SystemSettingResponse> getAllSettings() {
+        return repository.findAll()
+                .stream()
+                .map(mapper::toResponse)
+                .toList();
     }
 
     public SystemSettingResponse getSetting(Long id) {
-        SystemSetting setting = repository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Setting not found with id: " + id));
-
-        return SystemSettingResponse.fromEntity(setting);
+        return mapper.toResponse(findEntityById(id));
     }
 
+    public SystemSetting getActiveSetting() {
+        return repository.findByActiveTrue()
+                .orElseThrow(() ->
+                        new NotFoundException("Không tìm thấy cấu hình đang active"));
+    }
+
+    // ================== INTERNAL ==================
+
+    public SystemSetting findEntityById(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() ->
+                        new NotFoundException("Không tìm thấy cấu hình với ID: " + id));
+    }
+
+    // ================== ADMIN ==================
+
+    @Transactional
     public SystemSettingResponse updateSetting(Long id, SystemSettingRequest request) {
 
-        SystemSetting setting = repository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Setting not found"));
+        SystemSetting setting = findEntityById(id);
 
-        setting.setBorrowDays(request.borrowDays());
-        setting.setFinePerDay(request.finePerDay());
-
-        if (Boolean.TRUE.equals(request.active())) {
-            // tắt hết setting khác
-            repository.findAll().forEach(s -> s.setActive(false));
-            setting.setActive(true);
+        // 🌟 đảm bảo chỉ có 1 active
+        if (request.active()) {
+            repository.findByActiveTrue().ifPresent(active -> {
+                if (!active.getId().equals(id)) {
+                    active.setActive(false);
+                    repository.save(active);
+                }
+            });
         }
 
-        SystemSetting updated = repository.save(setting);
+        mapper.updateEntityFromRequest(request, setting);
 
-        return SystemSettingResponse.fromEntity(updated);
+        return mapper.toResponse(repository.save(setting));
     }
 }

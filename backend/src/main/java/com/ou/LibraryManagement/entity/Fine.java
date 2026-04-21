@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "fines")
@@ -17,26 +19,45 @@ public class Fine {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private double amount;
+    // Tổng số tiền nợ
+    @Column(nullable = false)
+    private double amount = 0.0;
+
+    //  SỬA: Ép kiểu TEXT vì thủ thư có thể ghi chú dài (VD: Sách rách bìa, mất trang...)
+    @Column(columnDefinition = "TEXT")
+    private String reason = "Trễ hạn trả sách";
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private FineStatus status = FineStatus.UNPAID;
 
-    @ManyToOne
-    @JoinColumn(name = "borrow_id")
-    private BorrowRecord borrowRecord;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "borrow_id", nullable = false)
+    private Borrow borrow;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    //  SỬA TỐI QUAN TRỌNG: Khởi tạo danh sách để chống lỗi NullPointerException
+    @OneToMany(mappedBy = "fine", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Payment> payments = new ArrayList<>();
+
+    @Column(updatable = false)
     private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
 
     public Fine(){}
 
     @PrePersist
     public void prePersist(){
         createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void preUpdate(){
+        updatedAt = LocalDateTime.now();
     }
 }

@@ -9,10 +9,12 @@ import com.ou.LibraryManagement.entity.enums.ReservationStatus;
 import com.ou.LibraryManagement.entity.enums.ReservationType;
 import com.ou.LibraryManagement.exception.BadRequestException;
 import com.ou.LibraryManagement.exception.NotFoundException;
+import com.ou.LibraryManagement.mapper.ReservationMapper;
 import com.ou.LibraryManagement.repository.BookRepository;
 import com.ou.LibraryManagement.repository.BorrowRepository;
 import com.ou.LibraryManagement.repository.ReservationRepository;
-import com.ou.LibraryManagement.repository.UserRepository;
+
+// Import Mapper tương ứng...
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,191 +22,150 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Service
-@Transactional
 public class ReservationService {
 
-    private static final int HOLD_DAYS = 2;
-
-    private final ReservationRepository repository;
+    private final ReservationRepository reservationRepository;
+    private final BorrowRepository borrowRepository;
     private final BookRepository bookRepository;
-    private final UserRepository userRepository;
-    private final BorrowRepository borrowRecordRepository;
+    private final UserService userService;
+    private final ReservationMapper reservationMapper;
 
-    public ReservationService(
-            ReservationRepository repository,
-            BookRepository bookRepository,
-            UserRepository userRepository,
-            BorrowRepository borrowRecordRepository
-    ) {
-        this.repository = repository;
+    public ReservationService(ReservationRepository reservationRepository,
+                              BorrowRepository borrowRepository, BookRepository bookRepository,
+
+                              UserService userService,
+                              ReservationMapper reservationMapper) {
+        this.reservationRepository = reservationRepository;
+        this.borrowRepository = borrowRepository;
         this.bookRepository = bookRepository;
-        this.userRepository = userRepository;
-        this.borrowRecordRepository = borrowRecordRepository;
+
+        this.userService = userService;
+        this.reservationMapper = reservationMapper;
     }
 
-    // ================= QUERY =================
-    public List<ReservationResponse> findAll(){
-        return repository.findAll()
+    public List<ReservationResponse> getAll() {
+        return reservationRepository.findAll()
                 .stream()
-                .map(ReservationResponse::fromEntity)
+                .map(reservationMapper::toResponse)
                 .toList();
     }
 
-    public List<ReservationResponse> getByUser(Long userId){
-        return repository.findByUserId(userId)
-                .stream()
-                .map(ReservationResponse::fromEntity)
-                .toList();
+    @Transactional
+    public void complete(Long userId, Long bookId) {
+
+        Reservation res = findFirstActive(userId, bookId);
+
+        if (res == null || res.getStatus() != ReservationStatus.HOLDING) {
+            throw new BadRequestException("Không tìm thấy phiếu giữ sách hợp lệ.");
+        }
+
+        res.setStatus(ReservationStatus.COMPLETED);
+        reservationRepository.save(res);
     }
 
-    // ================= CREATE =================
-    public ReservationResponse create(ReservationRequest request){
+    // ================== READER ==================
 
-        Book book = findBook(request.bookId());
-        User user = findUser(request.userId());
+    @Transactional
+    public ReservationResponse createReservation(ReservationRequest request, String email) {
 
-        //  CHECK DUPLICATE (đặt ở đây)
-        boolean existed = repository.existsByUserIdAndBookIdAndStatusIn(
-                request.userId(),
-                request.bookId(),
-                List.of(
-                        ReservationStatus.PENDING,
-                        ReservationStatus.HOLDING
-                )
+        User user = userService.findEntityByEmail(email)
+                .orElseThrow(() -> new BadRequestException("User không tồn tại"));
+
+        Book book = bookRepository.findById(request.bookId())
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy sách"));
+
+        if (findFirstActive(user.getId(), book.getId()) != null) {
+            throw new BadRequestException("Bạn đã đặt sách này rồi.");
+        }
+
+        int available = calculateAvailable(book);
+
+        Reservation res = new Reservation();
+        res.setBook(book);
+        res.setUser(user);
+        res.setReservationDate(LocalDate.now());
+
+        if (available > 0) {
+            res.setType(ReservationType.HOLD);
+            res.setStatus(ReservationStatus.HOLDING);
+            res.setExpireDate(LocalDate.now().plusDays(2));
+        } else {
+            res.setType(ReservationType.QUEUE);
+            res.setStatus(ReservationStatus.PENDING);
+        }
+
+        return reservationMapper.toResponse(reservationRepository.save(res));
+    }
+
+    // ================== INTERNAL ==================
+
+    public Reservation findFirstActive(Long userId, Long bookId) {
+        return reservationRepository.findByUserId(userId).stream()
+                .filter(r -> r.getBook().getId().equals(bookId)
+                        && (r.getStatus() == ReservationStatus.PENDING
+                        || r.getStatus() == ReservationStatus.HOLDING))
+                .findFirst().orElse(null);
+    }
+    public Reservation findHoldingByUserId(Long userId) {
+        return reservationRepository.findByUserId(userId).stream()
+                .filter(r -> r.getStatus() == ReservationStatus.HOLDING)
+                .findFirst()
+                .orElse(null);
+    }
+
+    public int calculateAvailable(Book book) {
+        int borrowed = borrowRepository.countByBookIdAndReturnDateIsNull(book.getId());
+
+        int holding = reservationRepository.countByBookIdAndTypeAndStatus(
+                book.getId(),
+                ReservationType.HOLD,
+                ReservationStatus.HOLDING
         );
 
-        if(existed){
-            throw new BadRequestException("Bạn đã đặt sách này rồi");
-        }
-
-        // clear expired HOLDING
-        expireHolding(book);
-        int available = calculateAvailable(book);
-
-        Reservation reservation = new Reservation();
-        reservation.setBook(book);
-        reservation.setUser(user);
-        reservation.setReservationDate(LocalDate.now());
-
-        //  HOLDING (còn sách)
-        if(available > 0){
-            reservation.setType(ReservationType.HOLD);
-            reservation.setStatus(ReservationStatus.HOLDING);
-            reservation.setExpireDate(LocalDate.now().plusDays(HOLD_DAYS));
-        }
-        //  QUEUE (hết sách)
-        else{
-            reservation.setType(ReservationType.QUEUE);
-            reservation.setStatus(ReservationStatus.PENDING);
-            reservation.setExpireDate(null);
-        }
-
-        return ReservationResponse.fromEntity(repository.save(reservation));
+        return book.getQuantity() - borrowed - holding;
     }
 
-    // ================= PROCESS QUEUE =================
-    public void processQueue(Book book){
-
-        // 1. clear expired HOLDING
-        expireHolding(book);
+    @Transactional
+    public void processQueue(Book book) {
 
         int available = calculateAvailable(book);
-        if(available <= 0) return;
+        if (available <= 0) return;
 
-        List<Reservation> pendingList = repository
-                .findByBookIdAndTypeAndStatusOrderByReservationDateAsc(
+        List<Reservation> pendingList =
+                reservationRepository.findByBookIdAndTypeAndStatusOrderByReservationDateAsc(
                         book.getId(),
                         ReservationType.QUEUE,
                         ReservationStatus.PENDING
                 );
 
-        int canAssign = available;
+        int canAssign = Math.min(available, pendingList.size());
 
-        for(int i = 0; i < Math.min(canAssign, pendingList.size()); i++){
+        for (int i = 0; i < canAssign; i++) {
             Reservation r = pendingList.get(i);
-
             r.setType(ReservationType.HOLD);
             r.setStatus(ReservationStatus.HOLDING);
-            r.setExpireDate(LocalDate.now().plusDays(HOLD_DAYS));
+            r.setExpireDate(LocalDate.now().plusDays(2));
 
-            repository.save(r);
-        }
-
-    }
-
-    // ================= EXPIRE =================
-    public void expireHolding(Book book){
-
-        List<Reservation> holdingList = repository
-                .findByBookIdAndTypeAndStatusOrderByReservationDateAsc(
-                        book.getId(),
-                        ReservationType.HOLD,
-                        ReservationStatus.HOLDING
-                );
-
-        for(Reservation r : holdingList){
-            if(r.getExpireDate() != null &&
-                    r.getExpireDate().isBefore(LocalDate.now())){
-
-                r.setStatus(ReservationStatus.EXPIRED);
-                repository.save(r);
-            }
+            reservationRepository.save(r);
         }
     }
 
-    // ================= COMPLETE =================
-    public void completeReservation(Long userId, Long bookId){
-
-        List<Reservation> holdingList = repository
-                .findByBookIdAndTypeAndStatusOrderByReservationDateAsc(
-                        bookId,
-                        ReservationType.HOLD,
-                        ReservationStatus.HOLDING
-                );
-
-        if(holdingList.isEmpty()) return;
-
-        Reservation first = holdingList.get(0);
-
-        if(first.getExpireDate() != null &&
-                first.getExpireDate().isBefore(LocalDate.now())){
-            throw new BadRequestException("Reservation expired");
-        }
-
-        if(!first.getUser().getId().equals(userId)){
-            throw new BadRequestException("Book is reserved for another user");
-        }
-
-        first.setStatus(ReservationStatus.COMPLETED);
-        repository.save(first);
+    public Reservation save(Reservation reservation) {
+        return reservationRepository.save(reservation);
     }
 
-    // ================= AVAILABLE =================
-    public int calculateAvailable(Book book){
-        int borrowed = borrowRecordRepository
-                .countByBookIdAndReturnDateIsNull(book.getId());
-
-        int holding = repository
-                .findByBookIdAndTypeAndStatusOrderByReservationDateAsc(
-                        book.getId(),
-                        ReservationType.HOLD,
-                        ReservationStatus.HOLDING
-                ).size();
-
-        return book.getQuantity() - borrowed - holding;
+    public List<Reservation> getHoldingListAsc(Long bookId) {
+        return reservationRepository.findByBookIdAndTypeAndStatusOrderByReservationDateAsc(
+                bookId,
+                ReservationType.HOLD,
+                ReservationStatus.HOLDING
+        );
     }
 
-    // ================= HELPER =================
-    private Book findBook(Long id){
-        return bookRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Book not found"));
-    }
-
-    private User findUser(Long id){
-        return userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User not found"));
-    }
-    public List<Book> getBooksNeedProcess(){
-        return repository.findBooksWithActiveReservations();
+    public List<ReservationResponse> getMyReservations(String email) {
+        return reservationRepository.findByUserEmailOrderByReservationDateDesc(email)
+                .stream()
+                .map(reservationMapper::toResponse)
+                .toList();
     }
 }

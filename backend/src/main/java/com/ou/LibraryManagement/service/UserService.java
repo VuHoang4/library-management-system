@@ -1,100 +1,159 @@
 package com.ou.LibraryManagement.service;
 
+import com.ou.LibraryManagement.dto.user.ChangePasswordRequest;
+import com.ou.LibraryManagement.dto.user.ProfileUpdateRequest;
 import com.ou.LibraryManagement.dto.user.UserRequest;
 import com.ou.LibraryManagement.dto.user.UserResponse;
 import com.ou.LibraryManagement.entity.Role;
 import com.ou.LibraryManagement.entity.User;
 import com.ou.LibraryManagement.exception.BadRequestException;
 import com.ou.LibraryManagement.exception.NotFoundException;
-import com.ou.LibraryManagement.repository.RoleRepository;
+import com.ou.LibraryManagement.mapper.UserMapper; // Sử dụng Mapper
 import com.ou.LibraryManagement.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserService {
 
-    private final UserRepository repository;
-    private final RoleRepository roleRepository;
+    private final UserRepository userRepository;
+    private final RoleService roleService;
+    private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository repository,
-                       RoleRepository roleRepository,
+    public UserService(UserRepository userRepository,
+                       RoleService roleService,
+                       UserMapper userMapper,
                        PasswordEncoder passwordEncoder) {
-        this.repository = repository;
-        this.roleRepository = roleRepository;
+        this.userRepository = userRepository;
+        this.roleService = roleService;
+        this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
     }
 
-    public List<UserResponse> findAll(){
-        return repository.findAll()
+    // ================== READ ==================
+
+    public List<UserResponse> getAllUsers() {
+        return userRepository.findAll()
                 .stream()
-                .map(UserResponse::fromEntity)
+                .map(userMapper::toResponse)
                 .toList();
     }
 
-    public UserResponse findById(Long id){
-        User user = repository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User not found with id: " + id));
-
-        return UserResponse.fromEntity(user);
+    public UserResponse getById(Long id) {
+        return userMapper.toResponse(findEntityById(id));
     }
 
-    public UserResponse create(UserRequest request){
+    public Optional<User> findEntityByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
 
-        if(repository.existsByEmail(request.email())){
-            throw new BadRequestException("Email already exists");
+    // ================== INTERNAL ==================
+
+    public User findEntityById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() ->
+                        new NotFoundException("Không tìm thấy user với ID: " + id));
+    }
+
+    private boolean isEmailExisted(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
+    private boolean isEmailExistedExcludeId(String email, Long id) {
+        return userRepository.existsByEmailAndIdNot(email, id);
+    }
+
+    // ================== ADMIN ==================
+
+    @Transactional
+    public UserResponse createUser(UserRequest request) {
+
+        if (isEmailExisted(request.email())) {
+            throw new BadRequestException("Email đã tồn tại!");
         }
 
-        Role role = roleRepository.findById(request.roleId())
-                .orElseThrow(() -> new NotFoundException("Role not found"));
+        Role role = roleService.findEntityById(request.roleId());
 
-        User user = new User();
-        user.setName(request.name());
-        user.setEmail(request.email());
+        User user = userMapper.toEntity(request);
         user.setPassword(passwordEncoder.encode(request.password()));
         user.setRole(role);
 
-        User saved = repository.save(user);
-
-        return UserResponse.fromEntity(saved);
+        return userMapper.toResponse(userRepository.save(user));
     }
+    @Transactional
+    public UserResponse updateProfile(String email, ProfileUpdateRequest request) {
 
-    public UserResponse getByEmail(String email){
-        return repository.findByEmail(email)
-                .map(UserResponse::fromEntity)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = findEntityByEmail(email)
+                .orElseThrow(() -> new NotFoundException("User không tồn tại"));
+
+        user.setName(request.fullName());
+        user.setPhone(request.phone());
+
+        return userMapper.toResponse(userRepository.save(user));
     }
+    @Transactional
+    public void changePassword(String email, ChangePasswordRequest request) {
 
-    public UserResponse update(Long id, UserRequest request){
+        User user = findEntityByEmail(email)
+                .orElseThrow(() -> new NotFoundException("User không tồn tại"));
 
-        User user = repository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User not found with id: " + id));
-
-        if(repository.existsByEmail(request.email())
-                && !user.getEmail().equals(request.email())){
-            throw new RuntimeException("Email already exists");
+        // check mật khẩu cũ
+        if (!passwordEncoder.matches(request.currentPassword(), user.getPassword())) {
+            throw new BadRequestException("Mật khẩu cũ không đúng");
         }
 
-        Role role = roleRepository.findById(request.roleId())
-                .orElseThrow(() -> new NotFoundException("Role not found"));
+        // set mật khẩu mới
+        user.setPassword(passwordEncoder.encode(request.newPassword()));
+        userRepository.save(user);
+    }
 
-        user.setName(request.name());
-        user.setEmail(request.email());
-        user.setPassword(passwordEncoder.encode(request.password()));
+    @Transactional
+    public UserResponse updateUser(Long id, UserRequest request) {
+
+        User user = findEntityById(id);
+
+        if (isEmailExistedExcludeId(request.email(), id)) {
+            throw new BadRequestException("Email bị trùng!");
+        }
+
+        Role role = roleService.findEntityById(request.roleId());
+
+        userMapper.updateEntityFromRequest(request, user);
+
+        // 🔐 chỉ encode khi có password mới
+        if (request.password() != null && !request.password().isBlank()) {
+            user.setPassword(passwordEncoder.encode(request.password()));
+        }
+
         user.setRole(role);
 
-        User updated = repository.save(user);
-
-        return UserResponse.fromEntity(updated);
+        return userMapper.toResponse(userRepository.save(user));
     }
 
-    public void deleteById(Long id){
-        if(!repository.existsById(id)){
-            throw new NotFoundException("User not found with id: " + id);
+    public List<UserResponse> search(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return userRepository.findAll()
+                    .stream()
+                    .map(userMapper::toResponse)
+                    .toList();
         }
-        repository.deleteById(id);
+
+        return userRepository
+                .search(keyword)
+                .stream()
+                .map(userMapper::toResponse)
+                .toList();
+    }
+
+    public List<UserResponse> searchReaders(String keyword) {
+        return userRepository.searchReaders(keyword)
+                .stream()
+                .map(userMapper::toResponse)
+                .toList();
     }
 }

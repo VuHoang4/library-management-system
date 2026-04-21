@@ -1,243 +1,199 @@
 package com.ou.LibraryManagement.service;
 
+import com.ou.LibraryManagement.dto.book.BookDetailResponse;
 import com.ou.LibraryManagement.dto.book.BookRequest;
 import com.ou.LibraryManagement.dto.book.BookResponse;
-import com.ou.LibraryManagement.entity.Book;
-import com.ou.LibraryManagement.entity.Reservation;
-import com.ou.LibraryManagement.entity.enums.ReservationStatus;
+import com.ou.LibraryManagement.entity.*;
+import com.ou.LibraryManagement.entity.enums.BorrowStatus;
 import com.ou.LibraryManagement.exception.BadRequestException;
 import com.ou.LibraryManagement.exception.NotFoundException;
 import com.ou.LibraryManagement.mapper.BookMapper;
 import com.ou.LibraryManagement.repository.BookRepository;
 import com.ou.LibraryManagement.repository.BorrowRepository;
-import com.ou.LibraryManagement.repository.ReservationRepository;
+import com.ou.LibraryManagement.service.event.BookStockIncreasedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class BookService {
 
     private final BookRepository bookRepository;
-    private final BorrowRepository borrowRecordRepository;
-    private final ReservationRepository reservationRepository;
-    private final BookMapper bookMapper;
+    private final BorrowRepository borrowRepository;
+    private final AuthorService authorService;
+    private final CategoryService categoryService;
+    private final PublisherService publisherService;
     private final ReservationService reservationService;
+    private final BookMapper bookMapper;
+    private final ApplicationEventPublisher publisher;
 
-    public BookService(BookRepository bookRepository,
-                       BorrowRepository borrowRecordRepository,
-                       ReservationRepository reservationRepository, BookMapper bookMapper, ReservationService reservationService) {
+    public BookService(BookRepository bookRepository, BorrowRepository borrowRepository,
+                       AuthorService authorService,
+                       CategoryService categoryService,
+                       PublisherService publisherService,
+                       ReservationService reservationService,
+                       BookMapper bookMapper,
+                       ApplicationEventPublisher publisher) {
         this.bookRepository = bookRepository;
-        this.borrowRecordRepository = borrowRecordRepository;
-        this.reservationRepository = reservationRepository;
-        this.bookMapper = bookMapper;
+        this.borrowRepository = borrowRepository;
+        this.authorService = authorService;
+        this.categoryService = categoryService;
+        this.publisherService = publisherService;
         this.reservationService = reservationService;
+        this.bookMapper = bookMapper;
+        this.publisher = publisher;
     }
 
-    // ================= QUERY =================
+    // ================== READ ==================
 
-    public List<BookResponse> findAll(){
-        return bookRepository.findAll()
-                .stream()
-                .map(book -> bookMapper.toResponse(
-                        book,
-                        reservationService.calculateAvailable(book),
-                        null
-                ))
+    public List<BookResponse> getAll(String search, Long categoryId, Long userId, String role) {
+
+        List<Book> books;
+
+        if (search != null && !search.isBlank()) {
+            books = bookRepository.searchAll(search);
+        } else {
+            books = bookRepository.findAllByIsActiveTrue();
+        }
+
+        if (categoryId != null) {
+            books = books.stream()
+                    .filter(b -> b.getCategory().getId().equals(categoryId))
+                    .toList();
+        }
+
+        // 🔥 ADMIN / LIBRARIAN
+        if ("ADMIN".equals(role) || "LIBRARIAN".equals(role)) {
+            return books.stream()
+                    .map(book -> {
+                        int available = reservationService.calculateAvailable(book);
+                        return bookMapper.toResponseBasic(book, available);
+                    })
+                    .toList();
+        }
+
+        // 🔥 READER
+        return books.stream()
+                .map(book -> mapToResponseReader(book, userId))
                 .toList();
     }
 
-    public BookResponse findById(Long id){
+    public List<Book> search(String keyword) {
+        return bookRepository.searchAll(keyword);
+    }
+
+
+    public BookDetailResponse getDetail(Long id) {
         Book book = findEntityById(id);
-        return bookMapper.toResponse(
-                book,
-                reservationService.calculateAvailable(book),
-                null
-        );
+        int available = reservationService.calculateAvailable(book);
+
+        return bookMapper.toDetailResponse(book,available);
     }
 
-    public List<BookResponse> search(String keyword){
-        return bookRepository
-                .findByTitleContainingIgnoreCase(keyword)
-                .stream()
-                .map(book -> bookMapper.toResponse(
-                        book,
-                        reservationService.calculateAvailable(book),null
-                ))
-                .toList();
-    }
-
-    public List<BookResponse> getAllBooks(Long userId){
-
-        //  STEP 1: lấy reservation của user → map theo bookId
-        Map<Long, Reservation> reservationMap =
-                (userId == null)
-                        ? new HashMap<>()
-                        : reservationRepository
-                        .findByUserId(userId)
-                        .stream()
-                        .filter(r -> r.getBook() != null)
-                        .collect(Collectors.toMap(
-                                r -> r.getBook().getId(),
-                                r -> r,
-                                (r1, r2) -> {
-                                    if (r1.getStatus() == ReservationStatus.HOLDING) return r1;
-                                    if (r2.getStatus() == ReservationStatus.HOLDING) return r2;
-                                    return r1;
-                                }
-                        ));
-
-        //  STEP 2: map book → response
-        return bookRepository.findAll().stream()
-                .map(book -> {
-
-                    int available = reservationService.calculateAvailable(book);
-
-                    Reservation r = reservationMap.get(book.getId());
-                    String status = mapUserStatus(r);
-
-                    return bookMapper.toResponse(
-                            book,
-                            available,
-                            status
-                    );
-                })
-                .toList();
-    }
-    private String mapUserStatus(Reservation r){
-
-        if (r == null) return null;
-
-        if (r.getStatus() == ReservationStatus.HOLDING) {
-            if (r.getExpireDate() != null &&
-                    r.getExpireDate().isBefore(LocalDate.now())) {
-                return "EXPIRED";
-            }
-            return "HOLDING";
-        }
-
-        if (r.getStatus() == ReservationStatus.PENDING) {
-            return "PENDING";
-        }
-
-        return null;
-    }
-
-    // ================= COMMAND =================
+    // ================== ADMIN ==================
 
     @Transactional
-    public BookResponse create(BookRequest request){
-
-        validateRequest(request);
-
-        if(request.isbn() != null && bookRepository.existsByIsbn(request.isbn())){
-            throw new BadRequestException("ISBN already exists");
+    public BookResponse create(BookRequest request) {
+        if (bookRepository.existsByIsbn(request.isbn())) {
+            throw new BadRequestException("ISBN đã tồn tại!");
         }
 
-        Book book = mapToEntity(new Book(), request);
+        Book book = new Book();
+        updateRelations(book, request);
+        mapBasicFields(book, request);
+
+        Book saved = bookRepository.save(book);
+        return bookMapper.toResponseBasic(saved, saved.getQuantity());
+    }
+
+    @Transactional
+    public BookResponse update(Long id, BookRequest request) {
+        Book book = findEntityById(id);
+
+        if (bookRepository.existsByIsbnAndIdNot(request.isbn(), id)) {
+            throw new BadRequestException("ISBN bị trùng!");
+        }
+
+        updateRelations(book, request);
+        mapBasicFields(book, request);
 
         Book saved = bookRepository.save(book);
 
-        return bookMapper.toResponse(
-                saved,
-                reservationService.calculateAvailable(saved),null
-        );
+        publisher.publishEvent(new BookStockIncreasedEvent(book));
+
+        int available = reservationService.calculateAvailable(saved);
+        return bookMapper.toResponseBasic(saved, available);
     }
 
     @Transactional
-    public BookResponse update(Long id, BookRequest request){
-
-        validateRequest(request);
-
+    public void delete(Long id) {
         Book book = findEntityById(id);
-
-        if(request.isbn() != null
-                && bookRepository.existsByIsbn(request.isbn())
-                && !request.isbn().equals(book.getIsbn())){
-            throw new BadRequestException("ISBN already exists");
-        }
-
-        int borrowed = borrowRecordRepository
-                .countByBookIdAndReturnDateIsNull(id);
-
-        int holding = reservationRepository
-                .countByBookIdAndTypeAndStatus(
-                        id,
-                        com.ou.LibraryManagement.entity.enums.ReservationType.HOLD,
-                        com.ou.LibraryManagement.entity.enums.ReservationStatus.HOLDING
-                );
-
-        if(request.quantity() < borrowed + holding){
-            throw new BadRequestException(
-                    "Quantity cannot be less than borrowed + holding"
-            );
-        }
-
-        mapToEntity(book, request);
-
-        Book updated = bookRepository.save(book);
-
-        return bookMapper.toResponse(
-                updated,
-                reservationService.calculateAvailable(updated),null
-        );
+        book.setActive(false);
+        bookRepository.save(book);
     }
 
-    @Transactional
-    public void deleteById(Long id){
+    // ================== INTERNAL ==================
 
-        Book book = findEntityById(id);
-
-        boolean hasBorrow = borrowRecordRepository
-                .existsByBookIdAndReturnDateIsNull(id);
-
-        if(hasBorrow){
-            throw new BadRequestException("Cannot delete book being borrowed");
-        }
-
-        boolean hasHolding = reservationRepository
-                .existsByBookIdAndTypeAndStatus(
-                        id,
-                        com.ou.LibraryManagement.entity.enums.ReservationType.HOLD,
-                        com.ou.LibraryManagement.entity.enums.ReservationStatus.HOLDING
-                );
-
-        if(hasHolding){
-            throw new BadRequestException("Cannot delete book with active holding");
-        }
-
-        bookRepository.delete(book);
-    }
-
-    // ================= HELPER =================
-
-    public Book findEntityById(Long id){
+    public Book findEntityById(Long id) {
         return bookRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Book not found"));
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy sách"));
     }
 
-    private Book mapToEntity(Book book, BookRequest request){
+    private void updateRelations(Book book, BookRequest request) {
+        book.setAuthor(authorService.findEntityById(request.authorId()));
+        book.setCategory(categoryService.findEntityById(request.categoryId()));
+        book.setPublisher(publisherService.findEntityById(request.publisherId()));
+    }
+
+    private void mapBasicFields(Book book, BookRequest request) {
         book.setTitle(request.title());
         book.setIsbn(request.isbn());
         book.setImageUrl(request.imageUrl());
+        book.setDescription(request.description());
+        book.setPublishedYear(request.publishedYear());
         book.setQuantity(request.quantity());
-        return book;
     }
 
-    private void validateRequest(BookRequest request){
+    private BookResponse mapToResponse(Book book, Long userId) {
+        int available = reservationService.calculateAvailable(book);
 
-        if(request.title() == null || request.title().isBlank()){
-            throw new BadRequestException("Title is required");
+        String resStatus = null;
+        String borrowStatus = null;
+
+        if (userId != null) {
+            Reservation res = reservationService.findFirstActive(userId, book.getId());
+            resStatus = (res != null) ? res.getStatus().name() : null;
+
+            Borrow borrow = borrowRepository.findFirstByUserIdAndBookIdOrderByIdDesc(userId, book.getId());
+            if (borrow != null && borrow.getStatus() == BorrowStatus.BORROWED) {
+                borrowStatus = borrow.getStatus().name();
+            }
         }
 
-        if(request.quantity() < 0){
-            throw new BadRequestException("Quantity must be >= 0");
+        return bookMapper.toResponseReader(book, available, resStatus, borrowStatus);
+    }
+
+    private BookResponse mapToResponseReader(Book book, Long userId) {
+
+        int available = reservationService.calculateAvailable(book);
+
+        String resStatus = null;
+        String borrowStatus = null;
+
+        if (userId != null) {
+            Reservation res = reservationService.findFirstActive(userId, book.getId());
+            resStatus = (res != null) ? res.getStatus().name() : null;
+
+            Borrow borrow = borrowRepository
+                    .findFirstByUserIdAndBookIdOrderByIdDesc(userId, book.getId());
+
+            if (borrow != null && borrow.getStatus() == BorrowStatus.BORROWED) {
+                borrowStatus = borrow.getStatus().name();
+            }
         }
+
+        return bookMapper.toResponseReader(book, available, resStatus, borrowStatus);
     }
 }

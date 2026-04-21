@@ -17,7 +17,7 @@ public class User {
     private Long id;
 
     @Column(nullable = false)
-    private String name;
+    private String name; // FE dùng fullName hoặc name đều được
 
     @Column(nullable = false, unique = true)
     private String email;
@@ -25,13 +25,29 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    @Column(name = "avatar_url", columnDefinition = "TEXT")
+    private String avatarUrl;
+
+    @Column(length = 15)
+    private String phone;
+
+    @Column(columnDefinition = "TEXT")
+    private String address;
+
+    //  THÊM: Cờ trạng thái tài khoản (Rất quan trọng cho Spring Security)
+    // true = Đang hoạt động, false = Bị khóa/Đã xóa mềm
+    @Column(name = "is_active",nullable = false)
+    private boolean isActive = true;
+
+    //  SỬA: Bảo vệ ngày tạo gốc
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
 
-    @ManyToOne
-    @JoinColumn(name = "role_id")
+    // EAGER ở đây là hợp lý vì Security luôn cần load Role lên cùng lúc với User
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "role_id", nullable = false) // Một user bắt buộc phải có Role
     private Role role;
 
     public User(){}

@@ -1,18 +1,12 @@
 package com.ou.LibraryManagement.dto.notification;
 
-import com.ou.LibraryManagement.entity.Notification;
+import java.time.LocalDateTime;
+
 public record NotificationResponse(
         Long id,
         String title,
         String content,
-        Long userId
-) {
-    public static NotificationResponse fromEntity(Notification n){
-        return new NotificationResponse(
-                n.getId(),
-                n.getTitle(),
-                n.getContent(),
-                n.getUser().getId()
-        );
-    }
-}
+        String type,
+        boolean unread, // Dung de hien thi cham do thong bao
+        LocalDateTime createdAt
+) {}
