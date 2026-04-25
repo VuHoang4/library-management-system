@@ -15,6 +15,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByEmail(String email);
     // Check trùng email nhưng bỏ qua ID của chính mình khi update
     boolean existsByEmailAndIdNot(String email, Long id);
+    long countByRoleName(String roleName);
 
     // Omni-search: Tìm theo SĐT, Email hoặc ID (Ép ID sang chuỗi để so sánh)
     @Query("SELECT u FROM User u WHERE u.role.name = 'ROLE_READER' AND " +

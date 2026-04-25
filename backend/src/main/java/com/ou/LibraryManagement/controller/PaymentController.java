@@ -39,14 +39,17 @@ public class PaymentController {
 //    @PreAuthorize("hasAuthority('ADMIN')")
 // 🔓 ADMIN xem tất cả
     @GetMapping
-    public ResponseEntity<List<PaymentResponse>> getAll(){
-        List<PaymentResponse> responses = paymentService.findAllEntities()
-                .stream()
-                .map(paymentMapper::toResponse) // 2. Map từ Entity sang Response
-                .toList();
-        return ResponseEntity.ok(responses);
+    public ResponseEntity<List<PaymentResponse>> getPayments(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String search
+    ) {
+        return ResponseEntity.ok(paymentService.getPayments(status, search));
     }
 
+    @PutMapping("/fines/{id}/pay-cash")
+    public ResponseEntity<PaymentResponse> payCash(@PathVariable Long id) {
+        return ResponseEntity.ok(paymentService.confirmFinePayment(id));
+    }
     // 🔓 USER xem payment của mình
     @GetMapping("/me")
     public ResponseEntity<List<PaymentResponse>> getMyPayments(Authentication auth){

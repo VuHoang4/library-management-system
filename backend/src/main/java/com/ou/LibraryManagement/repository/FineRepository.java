@@ -27,6 +27,7 @@ public interface FineRepository extends JpaRepository<Fine, Long> {
     boolean existsByBorrowId(Long borrowId);
 
     Optional<Fine> findByBorrowId(Long borrowId);
+    List<Fine> findByStatus(FineStatus status);
 
     // 3. Tính toán tổng nợ (Sử dụng Double/double để khớp với Entity)
     // COALESCE(SUM, 0.0) là "pha xử lý" điểm 10 giúp tránh lỗi Null khi User chưa có nợ.

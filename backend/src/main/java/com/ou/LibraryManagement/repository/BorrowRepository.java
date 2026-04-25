@@ -18,6 +18,17 @@ public interface BorrowRepository extends JpaRepository<Borrow, Long> {
 
     List<Borrow> findByUserId(Long userId);
     List<Borrow> findByUserEmail(String email);
+    long countByReturnDateIsNull();
+
+    @Query("""
+        SELECT COUNT(b)
+        FROM Borrow b
+        WHERE b.returnDate IS NULL
+          AND b.dueDate < CURRENT_DATE
+    """)
+    long countOverdue();
+
+    List<Borrow> findTop10ByOrderByBorrowDateDesc();
 
     @Query("""
         SELECT new com.ou.LibraryManagement.dto.HotBook(b.title, COUNT(br.id))
@@ -67,4 +78,6 @@ public interface BorrowRepository extends JpaRepository<Borrow, Long> {
     // Cho DashboardServiceImpl (Dòng 56)
     @Query("SELECT COUNT(b) FROM Borrow b WHERE b.user.id = :userId AND b.returnDate IS NULL AND b.dueDate < :date")
     long countBorrowsDueSoon(@Param("userId") Long userId, @Param("date") LocalDate date);
+
+    boolean existsByUserIdAndBookIdAndReturnDateIsNull(Long userId, Long bookId);
 }

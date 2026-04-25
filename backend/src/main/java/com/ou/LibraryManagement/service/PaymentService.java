@@ -63,6 +63,24 @@ public class PaymentService {
         return paymentRepository.findByUserEmail(email);
     }
 
+    public List<PaymentResponse> getPayments(String status, String search) {
+
+        List<Payment> payments = paymentRepository.findAll();
+
+        return payments.stream()
+                .filter(p -> {
+                    if (status == null || status.equalsIgnoreCase("ALL")) return true;
+                    return p.getStatus().name().equalsIgnoreCase(status);
+                })
+                .filter(p -> {
+                    if (search == null || search.isBlank()) return true;
+                    return p.getUser().getName().toLowerCase().contains(search.toLowerCase())
+                            || p.getOrderId().toLowerCase().contains(search.toLowerCase());
+                })
+                .map(paymentMapper::toResponse)
+                .toList();
+    }
+
     // ================= COMMAND =================
     @Transactional
     public PaymentResponse payFine(PaymentRequest request){
@@ -76,6 +94,35 @@ public class PaymentService {
         Payment saved = paymentRepository.save(payment);
 
         //  update fine status
+        fine.setStatus(FineStatus.PAID);
+        fineRepository.save(fine);
+
+        return paymentMapper.toResponse(saved);
+    }
+    @Transactional
+    public PaymentResponse confirmFinePayment(Long fineId) {
+
+        Fine fine = findFine(fineId);
+
+        // ❗ đã thanh toán rồi
+        if (fine.getStatus() == FineStatus.PAID) {
+            throw new BadRequestException("Phiếu phạt đã được thanh toán.");
+        }
+
+        // ❗ phải trả sách trước
+        validateFinePayable(fine);
+
+        // 👉 tạo payment CASH
+        Payment payment = new Payment();
+        payment.setFine(fine);
+        payment.setUser(fine.getUser());
+        payment.setAmount(fine.getAmount());
+        payment.setMethod("CASH");
+        payment.setStatus(PaymentStatus.SUCCESS);
+
+        Payment saved = paymentRepository.save(payment);
+
+        // 👉 update fine
         fine.setStatus(FineStatus.PAID);
         fineRepository.save(fine);
 

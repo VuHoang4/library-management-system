@@ -1,6 +1,7 @@
 package com.ou.LibraryManagement.service;
 
 import com.ou.LibraryManagement.dto.borrow.BorrowRequest;
+import com.ou.LibraryManagement.dto.fine.FineDto;
 import com.ou.LibraryManagement.dto.pos.*;
 import com.ou.LibraryManagement.entity.*;
 import com.ou.LibraryManagement.entity.enums.BorrowStatus;
@@ -42,18 +43,30 @@ public class LibrarianCirculationService {
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy độc giả"));
 
         // ===== tiền phạt =====
-        double unpaidFine = fineService.getTotalUnpaidAmount(user.getId());
+        List<Fine> unpaidFines = fineService.findUnpaidByUserId(user.getId());
+
+        double total = unpaidFines.stream()
+                .mapToDouble(Fine::getAmount)
+                .sum();
+
+        List<FineDto> fineDtos = unpaidFines.stream()
+                .map(f -> new FineDto(
+                        f.getId(),
+                        f.getAmount(),
+                        "Trễ hạn " + f.getBorrow().getBook().getTitle(),
+                        f.getBorrow().getId()
+                ))
+                .toList();
 
         // ===== sách đang giữ (HOLDING) =====
-        Reservation holding = reservationService.findHoldingByUserId(user.getId());
-        HoldingBookDto holdingDto = null;
-
-        if (holding != null && holding.getStatus() == ReservationStatus.HOLDING) {
-            holdingDto = new HoldingBookDto(
-                    holding.getBook().getId(),
-                    holding.getBook().getTitle()
-            );
-        }
+        List<HoldingBookDto> holdingDtos =
+                reservationService.findHoldingByUserId(user.getId())
+                        .stream()
+                        .map(r -> new HoldingBookDto(
+                                r.getBook().getId(),
+                                r.getBook().getTitle()
+                        ))
+                        .toList();
 
         List<ActiveBorrowResponse> borrows =
                 borrowService.findByUserId(user.getId()).stream()
@@ -85,8 +98,9 @@ public class LibrarianCirculationService {
                 user.getPhone(),
                 user.getAvatarUrl(),
                 user.isActive(),
-                unpaidFine,
-                holdingDto,
+                total,
+                fineDtos,
+                holdingDtos,
                 borrows
         );
     }

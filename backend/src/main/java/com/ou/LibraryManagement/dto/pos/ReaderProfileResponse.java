@@ -1,5 +1,7 @@
 package com.ou.LibraryManagement.dto.pos;
 
+import com.ou.LibraryManagement.dto.fine.FineDto;
+
 import java.util.List;
 
 public record ReaderProfileResponse(
@@ -10,6 +12,7 @@ public record ReaderProfileResponse(
         String avatarUrl,
         boolean isActive,
         double unpaidFine,
-        HoldingBookDto holdingBook,
+        List<FineDto> fines,
+        List<HoldingBookDto> holdingBooks,
         List<ActiveBorrowResponse> activeBorrows
 ) {}

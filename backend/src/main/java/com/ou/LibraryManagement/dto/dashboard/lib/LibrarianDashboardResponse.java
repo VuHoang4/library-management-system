@@ -1,6 +1,6 @@
 package com.ou.LibraryManagement.dto.dashboard.lib;
 
-public record DashboardSummaryResponse(
+public record LibrarianDashboardResponse(
         long totalBooks,
         long activeBorrows,
         long overdueBorrows,

@@ -74,6 +74,13 @@ public class ReservationService {
         Book book = bookRepository.findById(request.bookId())
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy sách"));
 
+        boolean isBorrowing = borrowRepository
+                .existsByUserIdAndBookIdAndReturnDateIsNull(user.getId(), book.getId());
+
+        if (isBorrowing) {
+            throw new BadRequestException("Bạn đang mượn cuốn sách này, không thể đặt trước.");
+        }
+
         if (findFirstActive(user.getId(), book.getId()) != null) {
             throw new BadRequestException("Bạn đã đặt sách này rồi.");
         }
@@ -106,11 +113,8 @@ public class ReservationService {
                         || r.getStatus() == ReservationStatus.HOLDING))
                 .findFirst().orElse(null);
     }
-    public Reservation findHoldingByUserId(Long userId) {
-        return reservationRepository.findByUserId(userId).stream()
-                .filter(r -> r.getStatus() == ReservationStatus.HOLDING)
-                .findFirst()
-                .orElse(null);
+    public List<Reservation> findHoldingByUserId(Long userId) {
+        return reservationRepository.findByUserIdAndStatus(userId, ReservationStatus.HOLDING);
     }
 
     public int calculateAvailable(Book book) {

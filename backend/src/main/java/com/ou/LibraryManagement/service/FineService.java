@@ -52,6 +52,24 @@ public class FineService {
                 .toList();
     }
 
+    public List<FineResponse> getUnpaidFines() {
+
+        return repository.findByStatus(FineStatus.UNPAID)
+                .stream()
+                .map(f -> new FineResponse(
+                        f.getId(),
+                        f.getAmount(),
+                        f.getReason(),
+                        f.getStatus(),
+                        f.getUser().getName(),
+                        f.getBorrow().getBook().getTitle(),
+                        f.getBorrow().getId(),
+                        f.getCreatedAt(),
+                        f.getUpdatedAt()
+                ))
+                .toList();
+    }
+
     // ================== READER ==================
 
     public List<FineResponse> getMyAllFines(String email) {
@@ -95,4 +113,8 @@ public class FineService {
     public Fine save(Fine fine) {
         return repository.save(fine);
     }
+    List<Fine> findUnpaidByUserId(Long userId){
+        return repository.findByUserIdAndStatus(userId,FineStatus.UNPAID);
+    }
+
 }
