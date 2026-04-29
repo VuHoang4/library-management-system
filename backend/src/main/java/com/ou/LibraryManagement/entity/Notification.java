@@ -17,11 +17,9 @@ public class Notification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    //  SỬA: Không cho phép tiêu đề rỗng
     @Column(nullable = false)
     private String title;
 
-    //  SỬA: Không cho phép nội dung rỗng
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
@@ -32,15 +30,13 @@ public class Notification {
     @Column(nullable = false)
     private boolean isRead = false;
 
-    //  SỬA: Thêm updatable = false
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    //  THÊM: Để biết lúc nào người dùng đánh dấu đã đọc
     private LocalDateTime updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false) // Một thông báo bắt buộc phải thuộc về 1 ai đó
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     public Notification(){}
@@ -51,7 +47,6 @@ public class Notification {
         updatedAt = LocalDateTime.now();
     }
 
-    // THÊM: Tự động cập nhật thời gian khi đổi trạng thái isRead
     @PreUpdate
     public void preUpdate(){
         updatedAt = LocalDateTime.now();

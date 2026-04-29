@@ -14,6 +14,4 @@ public record ProfileUpdateRequest(
 
         String address
 
-        // Lưu ý: Không có trường avatarUrl ở đây vì ảnh thường được upload qua
-        // định dạng form-data (MultipartFile) ở một API riêng biệt.
 ) {}

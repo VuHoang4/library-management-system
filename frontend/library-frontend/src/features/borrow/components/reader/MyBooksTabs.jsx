@@ -10,7 +10,6 @@ function MyBooksTabs({ activeTab, setActiveTab }) {
         <button
           key={tab.key}
           onClick={() => setActiveTab(tab.key)}
-          // Thêm một chút transition để hiệu ứng gạch chân mượt mà hơn
           className={`pb-3 px-1 border-b-2 transition-all duration-200 font-medium ${
             activeTab === tab.key
               ? "border-blue-600 text-blue-600"

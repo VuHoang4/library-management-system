@@ -6,12 +6,12 @@ import com.ou.LibraryManagement.entity.Book;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-// componentModel = "spring" giúp Spring tự động tạo ra một Bean (giống hệt @Component)
+
 @Mapper(componentModel = "spring")
 public interface BookMapper {
 
-    // 1. Dành cho Admin / Khách vãng lai
-    @Mapping(target = "author", source = "book.author.name") // MapStruct tự động lo việc check null!
+
+    @Mapping(target = "author", source = "book.author.name")
     @Mapping(target = "category", source = "book.category.name")
     @Mapping(target = "publisher", source = "book.publisher.name")
     @Mapping(target = "available", source = "available") // Lấy từ tham số truyền vào
@@ -19,7 +19,6 @@ public interface BookMapper {
     @Mapping(target = "userBorrowStatus", ignore = true)
     BookResponse toResponseBasic(Book book, int available);
 
-    // 2. Dành cho Reader (Độc giả đã đăng nhập)
     @Mapping(target = "author", source = "book.author.name")
     @Mapping(target = "category", source = "book.category.name")
     @Mapping(target = "publisher", source = "book.publisher.name")
@@ -28,7 +27,6 @@ public interface BookMapper {
     @Mapping(target = "userBorrowStatus", source = "userBorrowStatus")           // Lấy từ tham số
     BookResponse toResponseReader(Book book, int available, String userReservationStatus, String userBorrowStatus);
 
-    // 2. Dành cho Reader (Độc giả đã đăng nhập)
     @Mapping(target = "available", source = "available") // Lấy từ tham số truyền vào
     @Mapping(target = "author", source = "book.author.name")
     @Mapping(target = "category", source = "book.category.name")

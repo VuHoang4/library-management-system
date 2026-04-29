@@ -19,15 +19,12 @@ public class Publisher {
     @Column(nullable = false, length = 255)
     private String name;
 
-    //  THÊM: Mô tả hoặc địa chỉ
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    //  THÊM: Cờ xóa mềm (Chống lỗi khóa ngoại khi xóa)
     @Column(nullable = false)
     private boolean isActive = true;
 
-    //  THÊM: Timestamps
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 

@@ -9,7 +9,7 @@ public record FineResponse(
         String reason,
         FineStatus status,
 
-        // Thông tin liên quan để hiển thị trên UI
+
         String userName,
         String bookTitle,
         Long borrowId,

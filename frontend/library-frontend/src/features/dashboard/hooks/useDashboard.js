@@ -24,6 +24,7 @@ export function useDashboard(userId) {
       
       setBooks(booksRes.data);
       setSummary(summaryRes.data);
+      console.log("Dashboard summary:", summaryRes.data);
     } catch (error) {
       console.error("Lỗi khi tải dữ liệu dashboard:", error);
     } finally {

@@ -4,7 +4,9 @@ import com.ou.LibraryManagement.dto.HotBook;
 import com.ou.LibraryManagement.dto.Overdue;
 import com.ou.LibraryManagement.dto.dashboard.DueSoonResponse;
 import com.ou.LibraryManagement.dto.dashboard.OverdueResponse;
+import com.ou.LibraryManagement.dto.dashboard.admin.TopBookResponse;
 import com.ou.LibraryManagement.entity.Borrow;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -68,16 +70,48 @@ public interface BorrowRepository extends JpaRepository<Borrow, Long> {
 
     int countByBookIdAndReturnDateIsNull(Long id);
     Borrow findFirstByUserIdAndBookIdOrderByIdDesc(Long userId, Long bookId);
-    // Cho ReportService (Dòng 24)
     @Query("SELECT b FROM Borrow b WHERE b.returnDate IS NULL AND b.dueDate < CURRENT_DATE")
     List<Borrow> getOverdueBooks();
 
-    // Cho OverdueScheduler (Dòng 36)
     List<Borrow> findByReturnDateIsNullAndDueDateBefore(LocalDate date);
 
-    // Cho DashboardServiceImpl (Dòng 56)
-    @Query("SELECT COUNT(b) FROM Borrow b WHERE b.user.id = :userId AND b.returnDate IS NULL AND b.dueDate < :date")
-    long countBorrowsDueSoon(@Param("userId") Long userId, @Param("date") LocalDate date);
+    @Query("""
+SELECT COUNT(b)
+FROM Borrow b
+WHERE b.user.id = :userId
+  AND b.status = 'BORROWED'
+  AND b.returnDate IS NULL
+  AND b.dueDate BETWEEN CURRENT_DATE AND :date
+""")
+    long countBorrowsDueSoon(@Param("userId") Long userId,
+                             @Param("date") LocalDate date);
 
     boolean existsByUserIdAndBookIdAndReturnDateIsNull(Long userId, Long bookId);
+
+
+    @Query("""
+SELECT new com.ou.LibraryManagement.dto.dashboard.admin.TopBookResponse(
+    b.id,
+    b.title,
+    COUNT(br.id)
+)
+FROM Borrow br
+JOIN br.book b
+GROUP BY b.id, b.title
+ORDER BY COUNT(br.id) DESC
+""")
+    List<TopBookResponse> findTopBooks(Pageable pageable);
+
+    @Query("""
+SELECT COALESCE(MAX(
+    CASE 
+        WHEN b.dueDate < CURRENT_DATE 
+        THEN FUNCTION('DATEDIFF', CURRENT_DATE, b.dueDate)
+        ELSE 0
+    END
+), 0)
+FROM Borrow b
+WHERE b.user.id = :userId
+""")
+    int findMaxDaysLateByUserId(Long userId);
 }

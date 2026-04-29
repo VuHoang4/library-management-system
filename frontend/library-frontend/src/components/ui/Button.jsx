@@ -1,4 +1,3 @@
-// src/components/ui/Button.jsx
 import { Loader2 } from "lucide-react";
 
 function Button({ 

@@ -19,11 +19,9 @@ public class Fine {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Tổng số tiền nợ
     @Column(nullable = false)
     private double amount = 0.0;
 
-    //  SỬA: Ép kiểu TEXT vì thủ thư có thể ghi chú dài (VD: Sách rách bìa, mất trang...)
     @Column(columnDefinition = "TEXT")
     private String reason = "Trễ hạn trả sách";
 
@@ -39,7 +37,6 @@ public class Fine {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    //  SỬA TỐI QUAN TRỌNG: Khởi tạo danh sách để chống lỗi NullPointerException
     @OneToMany(mappedBy = "fine", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Payment> payments = new ArrayList<>();
 

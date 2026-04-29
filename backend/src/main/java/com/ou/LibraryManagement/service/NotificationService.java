@@ -7,6 +7,7 @@ import com.ou.LibraryManagement.entity.User;
 import com.ou.LibraryManagement.exception.NotFoundException;
 import com.ou.LibraryManagement.mapper.NotificationMapper;
 import com.ou.LibraryManagement.repository.NotificationRepository;
+import com.ou.LibraryManagement.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,13 +17,15 @@ public class NotificationService {
 
     private final NotificationRepository repository;
     private final UserService userService;
+    private final UserRepository userRepository;
     private final NotificationMapper notificationMapper;
 
     public NotificationService(NotificationRepository repository,
-                               UserService userService,
+                               UserService userService, UserRepository userRepository,
                                NotificationMapper notificationMapper) {
         this.repository = repository;
         this.userService = userService;
+        this.userRepository = userRepository;
         this.notificationMapper = notificationMapper;
     }
 
@@ -68,6 +71,28 @@ public class NotificationService {
 
         unreadList.forEach(n -> n.setRead(true));
         repository.saveAll(unreadList);
+    }
+
+    public void create(NotificationRequest req) {
+
+        List<User> users;
+
+        if (req.targetRole().equals("ALL")) {
+            users = userRepository.findAll();
+        } else {
+            users = userRepository.findByRole_Name(req.targetRole());
+        }
+
+        List<Notification> list = users.stream().map(u -> {
+            Notification n = new Notification();
+            n.setTitle(req.title());
+            n.setContent(req.content());
+            n.setType(req.type());
+            n.setUser(u);
+            return n;
+        }).toList();
+
+        repository.saveAll(list);
     }
 
     // ================== INTERNAL ==================

@@ -7,10 +7,9 @@ const api = axios.create({
   },
 });
 
-// Interceptor: Tự động gắn Token vào mỗi request
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token"); // Hoặc lấy từ AuthContext
+    const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -19,13 +18,11 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Interceptor: Xử lý lỗi tập trung
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Ví dụ: token hết hạn -> xóa token và chuyển hướng
-      localStorage.removeItem("accessToken");
+      localStorage.removeItem("token");
       window.location.href = "/login";
     }
     return Promise.reject(error);

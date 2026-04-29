@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OverdueResponse {
-    private Long id;            // Mã phiếu mượn
-    private String title;       // Tên sách
-    private Double fine;        // Tổng tiền phạt (của riêng cuốn này)
+    private Long id;
+    private String title;
+    private Double fine;
 }

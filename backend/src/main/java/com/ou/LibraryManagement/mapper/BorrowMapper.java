@@ -8,8 +8,7 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface BorrowMapper {
 
-    // MapStruct sẽ tự động gọi borrow.getUser().getName()
-    // và gán vào userName một cách an toàn (không lo NullPointerException)
+
     @Mapping(target = "userName", source = "user.name")
     @Mapping(target = "bookTitle", source = "book.title")
     @Mapping(target = "imageUrl", source = "book.imageUrl")

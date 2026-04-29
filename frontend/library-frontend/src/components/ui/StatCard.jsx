@@ -1,4 +1,3 @@
-// src/components/ui/StatCard.jsx
 function StatCard({ title, value, icon, iconBg = "bg-blue-50", iconColor = "text-blue-600", className = "", ...props }) {
   return (
     <div 

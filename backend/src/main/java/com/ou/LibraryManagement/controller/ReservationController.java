@@ -22,26 +22,21 @@ public class ReservationController {
         this.reservationService = reservationService;
     }
 
-    // ================= LIBRARIAN =================
-
- //   @PreAuthorize("hasAnyRole('THU_THU','ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'LIBRARIAN')")
     @GetMapping
     public ResponseEntity<List<ReservationResponse>> getAll() {
         return ResponseEntity.ok(reservationService.getAll());
     }
 
-  //  @PreAuthorize("hasAnyRole('THU_THU','ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'LIBRARIAN')")
     @PutMapping("/complete")
     public ResponseEntity<Void> complete(@RequestParam Long userId,
                                          @RequestParam Long bookId) {
-
         reservationService.complete(userId, bookId);
         return ResponseEntity.ok().build();
     }
 
-    // ================= READER =================
-
-  //  @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/me")
     public ResponseEntity<List<ReservationResponse>> getMyReservations(Principal principal) {
         return ResponseEntity.ok(
@@ -49,7 +44,7 @@ public class ReservationController {
         );
     }
 
-   // @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated()")
     @PostMapping
     public ResponseEntity<ReservationResponse> create(@RequestBody ReservationRequest request,
                                                       Principal principal) {

@@ -8,6 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface RoleRepository extends JpaRepository<Role, Long> {
-    // Trả về Optional để an toàn hơn
     Optional<Role> findByName(String name);
 }

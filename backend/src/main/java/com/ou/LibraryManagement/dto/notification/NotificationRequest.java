@@ -14,6 +14,8 @@ public record NotificationRequest(
         @NotBlank(message = "Noi dung khong duoc de trong")
         String content,
 
-        // Them loai thong bao de FE hien thi mau sac
-        NotificationType type
+
+        NotificationType type,
+
+        String targetRole
 ) {}

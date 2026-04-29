@@ -29,8 +29,8 @@ public class CategoryService {
 
     // ================== READ ==================
 
-    public List<CategoryResponse> getAll() {
-        return categoryRepository.findAllByIsActiveTrue()
+    public List<CategoryResponse>   getAll() {
+        return categoryRepository.findAllByActiveTrue()
                 .stream()
                 .map(categoryMapper::toResponse)
                 .toList();
@@ -49,7 +49,7 @@ public class CategoryService {
     }
 
     private boolean isNameExisted(String name) {
-        return categoryRepository.existsByNameAndIsActiveTrue(name);
+        return categoryRepository.existsByNameAndActiveTrue(name);
     }
 
     // ================== ADMIN ==================
@@ -88,4 +88,5 @@ public class CategoryService {
         category.setActive(false);
         categoryRepository.save(category);
     }
+
 }

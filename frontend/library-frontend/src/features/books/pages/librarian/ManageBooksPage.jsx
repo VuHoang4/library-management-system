@@ -2,7 +2,8 @@ import { useManageBooks } from "../../hooks/useManageBooks";
 import { BookFilterBar } from "../../components/BookFilterBar";
 import { BookTable } from "../../components/BookTable";
 import { BookFormModal } from "../../components/librarian/BookFormModal";
-import { Plus, BookOpen } from "lucide-react"; // 🌟 Import thêm icon
+import { Plus, BookOpen } from "lucide-react";
+import { Button } from "../../../../components/ui";
 
 function ManageBooksPage() {
   const { 
@@ -20,11 +21,8 @@ function ManageBooksPage() {
 
   return (
     <div className="space-y-6 animate-in fade-in zoom-in-95 duration-500 pb-10">
-      
-      {/* 🌟 HEADER NÂNG CẤP */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
         <div className="flex items-center gap-4">
-          {/* Biểu tượng trang trí bên cạnh tiêu đề */}
           <div className="p-3 bg-blue-50 text-blue-600 rounded-xl hidden sm:block">
             <BookOpen size={28} strokeWidth={1.5} />
           </div>
@@ -38,17 +36,16 @@ function ManageBooksPage() {
           </div>
         </div>
 
-        {/* Nút bấm chuẩn xịn (Có icon, bóng đổ, hiệu ứng click) */}
-        <button 
+        <Button 
           onClick={handleOpenAdd}
-          className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-blue-700 transition-all shadow-sm hover:shadow-blue-200 hover:-translate-y-0.5 active:scale-95 active:translate-y-0"
+          variant="primary"
+          className="gap-2 shadow-sm hover:shadow-blue-200 hover:-translate-y-0.5 active:translate-y-0"
         >
           <Plus size={20} strokeWidth={2.5} />
           Thêm sách mới
-        </button>
+        </Button>
       </div>
 
-      {/* 🌟 KHU VỰC DỮ LIỆU (Gom Filter và Table vào chung 1 luồng nhìn) */}
       <div className="space-y-4">
         <BookFilterBar 
           searchTerm={searchTerm} 
@@ -66,7 +63,6 @@ function ManageBooksPage() {
         />
       </div>
 
-      {/* MODAL */}
       <BookFormModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)} 

@@ -1,4 +1,3 @@
-// src/components/ui/Table.jsx
 function Table({ headers, children }) {
   return (
     <div className="w-full overflow-x-auto rounded-lg border border-slate-200">

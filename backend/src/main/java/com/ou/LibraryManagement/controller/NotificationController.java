@@ -1,5 +1,6 @@
 package com.ou.LibraryManagement.controller;
 
+import com.ou.LibraryManagement.dto.notification.NotificationRequest;
 import com.ou.LibraryManagement.dto.notification.NotificationResponse;
 import com.ou.LibraryManagement.service.NotificationService;
 
@@ -16,31 +17,36 @@ public class NotificationController {
 
     private final NotificationService notificationService;
 
-    public NotificationController(NotificationService NotificationService) {
-        this.notificationService = NotificationService;
+    public NotificationController(NotificationService notificationService) {
+        this.notificationService = notificationService;
     }
 
-    // ================= USER NOTIFICATIONS =================
-
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/me")
- //   @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<NotificationResponse>> getMyNotifications(Principal principal) {
         return ResponseEntity.ok(
                 notificationService.getMyNotifications(principal.getName())
         );
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PutMapping("/{id}/read")
- //   @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> markAsRead(@PathVariable Long id) {
         notificationService.markAsRead(id);
         return ResponseEntity.ok().build();
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PutMapping("/read-all")
-   // @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> markAllAsRead(Principal principal) {
         notificationService.markAllAsRead(principal.getName());
+        return ResponseEntity.ok().build();
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PostMapping
+    public ResponseEntity<Void> create(@RequestBody NotificationRequest req) {
+        notificationService.create(req);
         return ResponseEntity.ok().build();
     }
 }

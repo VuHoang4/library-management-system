@@ -1,7 +1,6 @@
 import api from "./api"; // Giữ nguyên đường dẫn import của bạn
 
 export const publisherApi = {
-  // Dành cho mọi người (Lấy danh sách để đổ vào Dropdown)
   getPublishers: (params) => {
     return api.get("/publishers", { params });
   },
@@ -10,7 +9,6 @@ export const publisherApi = {
     return api.get(`/publishers/${id}`);
   },
 
-  // Dành cho Admin/Thủ thư (Cần có Token JWT)
   createPublisher: (data) => {
     return api.post("/publishers", data);
   },

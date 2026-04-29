@@ -14,7 +14,7 @@ public record UserResponse(
         Long roleId,
         String roleName,
 
-        //  THÊM: Trạng thái và thời gian hệ thống
+
         boolean active,
         LocalDateTime createdAt,
         LocalDateTime updatedAt

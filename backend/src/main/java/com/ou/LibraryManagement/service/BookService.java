@@ -64,7 +64,6 @@ public class BookService {
                     .toList();
         }
 
-        // 🔥 ADMIN / LIBRARIAN
         if ("ADMIN".equals(role) || "LIBRARIAN".equals(role)) {
             return books.stream()
                     .map(book -> {
@@ -74,7 +73,6 @@ public class BookService {
                     .toList();
         }
 
-        // 🔥 READER
         return books.stream()
                 .map(book -> mapToResponseReader(book, userId))
                 .toList();

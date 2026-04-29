@@ -1,49 +1,57 @@
 import { useState } from "react";
 import { librarianApi } from "../services/librarianApi";
-import { toast } from "react-toastify";
+import { useToast } from "../../../hooks/useToast";
 
 export const usePosLogic = () => {
+  const toast = useToast(); 
   const [reader, setReader] = useState(null);
   const [cart, setCart] = useState([]);
 
-  // ================= SEARCH READER =================
   const searchReader = async (keyword) => {
     try {
       const res = await librarianApi.searchReader(keyword);
-      console.log("Kết quả tìm kiếm độc giả:", res.data);
       setReader(res.data);
       setCart([]);
-    } catch (err) {
+    } catch (error) {
+      console.error(error);
       toast.error("Không tìm thấy độc giả");
     }
   };
 
-  // ================= ADD BOOK =================
+  const reloadReader = async () => {
+    if (!reader) return;
+    await searchReader(reader.email || reader.phone);
+  };
+
   const addBookToCart = async (keyword) => {
     try {
       const res = await librarianApi.searchBook(keyword);
       const book = res.data;
 
-      //  tránh trùng
       if (cart.some((b) => b.id === book.id)) {
         toast.warning("Sách đã có trong danh sách");
         return;
       }
 
       setCart((prev) => [...prev, book]);
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Không tìm thấy sách");
+
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Không tìm thấy sách");
     }
   };
 
-  // ================= REMOVE =================
   const removeBookFromCart = (id) => {
     setCart((prev) => prev.filter((b) => b.id !== id));
   };
 
-  // ================= CHECKOUT =================
   const checkoutCart = async () => {
     try {
+      if (!reader) {
+        toast.error("Chưa chọn độc giả");
+        return;
+      }
+
       await librarianApi.checkout({
         userId: reader.id,
         bookIds: cart.map((b) => b.id),
@@ -51,40 +59,60 @@ export const usePosLogic = () => {
 
       toast.success("Mượn sách thành công");
 
-      //  reload lại reader
-      searchReader(reader.email || reader.phone);
-
+      await reloadReader();
       setCart([]);
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Lỗi mượn sách");
+
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Lỗi mượn sách");
     }
   };
 
-  // ================= RETURN =================
   const receiveReturn = async (borrowId, title) => {
     try {
       await librarianApi.returnBook(borrowId);
       toast.success(`Đã nhận trả: ${title}`);
 
-      searchReader(reader.email || reader.phone);
-    } catch (err) {
+      await reloadReader();
+
+    } catch (error) {
+      console.error(error);
       toast.error("Lỗi trả sách");
     }
   };
 
-  // ================= GIVE HOLDING =================
-  const giveHoldingBook = async () => {
+  const giveHoldingBook = async (bookId) => {
     try {
       await librarianApi.giveHolding({
         userId: reader.id,
-        bookId: reader.holdingBook.id,
+        bookId,
       });
 
       toast.success("Đã giao sách giữ");
+      await reloadReader();
 
-      searchReader(reader.email || reader.phone);
-    } catch (err) {
+    } catch (error) {
+      console.error(error);
       toast.error("Lỗi giao sách");
+    }
+  };
+
+  const payFine = async (fineId) => {
+    try {
+      if (!fineId) {
+        toast.error("Không tìm thấy phiếu phạt");
+        return;
+      }
+
+      await librarianApi.payFineCash(fineId);
+
+      toast.success("Đã thu tiền thành công");
+
+      await reloadReader();
+
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Lỗi thanh toán");
     }
   };
 
@@ -97,5 +125,6 @@ export const usePosLogic = () => {
     checkoutCart,
     receiveReturn,
     giveHoldingBook,
+    payFine, 
   };
 };

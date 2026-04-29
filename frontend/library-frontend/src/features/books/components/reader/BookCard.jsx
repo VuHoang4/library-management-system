@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
-import { Badge } from "../../../../components/ui"; // Import Badge
+import { Image as ImageIcon } from "lucide-react";
+import { Badge } from "../../../../components/ui"; 
 
 function BookCard({ book, onClick }) { 
-  // Map trạng thái sang đúng variant của Design System
   const getStatus = () => {
     if (book.userBorrowStatus === "BORROWED") return { text: "Đang mượn", variant: "info" };
     if (book.userReservationStatus === "HOLDING") return { text: "Đang giữ", variant: "info" };
@@ -19,17 +19,23 @@ function BookCard({ book, onClick }) {
       id={`book-${book.id}`}
       to={`/books/${book.id}`}
       onClick={onClick}
-      className={`block bg-white rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition cursor-pointer overflow-hidden border border-slate-100 ${
+      className={`block bg-white rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer overflow-hidden border border-slate-100 ${
         book.userBorrowStatus === "BORROWED" ? "ring-2 ring-blue-500/30" : ""
       }`}
     >
       <div className="relative">
-        <img
-          src={book.imageUrl || "https://via.placeholder.com/300"}
-          alt={book.title}
-          className="w-full h-56 object-cover" 
-        />
-        {/* Dùng Component Badge */}
+        {book.imageUrl ? (
+          <img
+            src={book.imageUrl}
+            alt={book.title}
+            className="w-full h-56 object-cover" 
+          />
+        ) : (
+          <div className="w-full h-56 bg-slate-100 flex items-center justify-center text-slate-400">
+            <ImageIcon size={40} strokeWidth={1.5} />
+          </div>
+        )}
+        
         <div className="absolute top-3 right-3">
           <Badge variant={status.variant} className="shadow-sm backdrop-blur-sm bg-white/95">
             {status.text}
@@ -38,9 +44,15 @@ function BookCard({ book, onClick }) {
       </div>
 
       <div className="p-4 space-y-1.5">
-        <p className="text-xs text-blue-600 font-semibold tracking-wide uppercase">{book.category}</p>
-        <h3 className="font-bold text-slate-800 line-clamp-2 leading-snug">{book.title}</h3>
-        <p className="text-sm text-slate-500">{book.author}</p>
+        <p className="text-xs text-blue-600 font-semibold tracking-wide uppercase truncate">
+          {book.categoryName || book.category}
+        </p>
+        <h3 className="font-bold text-slate-800 line-clamp-2 leading-snug">
+          {book.title}
+        </h3>
+        <p className="text-sm text-slate-500 truncate">
+          {book.authorName || book.author}
+        </p>
         <div className="pt-2 flex items-center justify-between border-t border-slate-50 mt-2">
           <p className="text-xs text-slate-500">
             Còn lại: <span className="font-bold text-slate-700">{book.available}</span>

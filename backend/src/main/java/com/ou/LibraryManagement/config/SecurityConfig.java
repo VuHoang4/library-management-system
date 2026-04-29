@@ -22,7 +22,7 @@ public class SecurityConfig {
     @Autowired
     private JwtFilter jwtFilter;
 
-    // 🔥 đọc từ properties
+
     @Value("${security.enabled:true}")
     private boolean securityEnabled;
 
@@ -34,7 +34,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-        // 🚨 nếu tắt security → mở full
+
         if (!securityEnabled) {
             return http
                     .csrf(csrf -> csrf.disable())
@@ -44,15 +44,15 @@ public class SecurityConfig {
                     .build();
         }
 
-        // 🔐 security bật
+
         return http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
 
-                        // 🔓 public
+
                         .requestMatchers("/auth/**").permitAll()
 
-                        // 🔓 swagger + payment callback
+
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
@@ -62,10 +62,10 @@ public class SecurityConfig {
                                 "/api/upload/**"
                         ).permitAll()
 
-                        // 🔒 admin
+
                         .requestMatchers("/admin/**").hasAuthority("ADMIN")
 
-                        // 🔐 còn lại
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)

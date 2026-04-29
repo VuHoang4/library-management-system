@@ -1,6 +1,5 @@
-// SỬA LẠI IMPORT VÀ TÊN COMPONENT
 import { useState } from "react";
-import MyBooksTabs from "../../components/reader/MyBooksTabs"; // Đổi tên import
+import MyBooksTabs from "../../components/reader/MyBooksTabs"; 
 import BorrowedTab from "../../components/reader/BorrowedTab";
 import ReservationTab from "../../components/reader/ReservationTab";
 

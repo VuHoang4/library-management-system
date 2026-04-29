@@ -38,7 +38,6 @@ public class LibrarianCirculationService {
     // ================= SEARCH READER =================
     public ReaderProfileResponse searchReader(String keyword) {
 
-        // 👉 bạn chưa có search đa field → tạm dùng email
         User user = userService.findEntityByEmail(keyword)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy độc giả"));
 

@@ -2,11 +2,8 @@ package com.ou.LibraryManagement.controller;
 
 import com.ou.LibraryManagement.dto.publisher.PublisherRequest;
 import com.ou.LibraryManagement.dto.publisher.PublisherResponse;
-
-
 import com.ou.LibraryManagement.service.PublisherService;
 import jakarta.validation.Valid;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,8 +21,6 @@ public class PublisherController {
         this.publisherService = publisherService;
     }
 
-    // ===== READER =====
-
     @GetMapping
     public ResponseEntity<List<PublisherResponse>> getAll() {
         return ResponseEntity.ok(publisherService.getAll());
@@ -36,16 +31,14 @@ public class PublisherController {
         return ResponseEntity.ok(publisherService.getById(id));
     }
 
-    // ===== ADMIN =====
-
-   // @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping
     public ResponseEntity<PublisherResponse> create(@Valid @RequestBody PublisherRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(publisherService.create(request));
     }
 
-   // @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<PublisherResponse> update(@PathVariable Long id,
                                                     @Valid @RequestBody PublisherRequest request) {
@@ -54,7 +47,7 @@ public class PublisherController {
         );
     }
 
-  //  @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         publisherService.delete(id);

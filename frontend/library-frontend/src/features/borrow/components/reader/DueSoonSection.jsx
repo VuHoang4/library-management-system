@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Clock } from "lucide-react";
 import BookStatusCard from "./BookStatusCard";
 import { userApi } from "../../../users/services/userApi";
 
@@ -10,26 +11,30 @@ function DueSoonSection() {
     userApi.getDueSoonBooks()
       .then((res) => {
         setData(res.data);
+        console.log("Due soon books:", res.data);
       })
-      .catch((err) => console.error("Lỗi lấy sách sắp đến hạn:", err))
+      .catch((err) => console.error(err))
       .finally(() => setLoading(false));
   }, []);
 
-  // Nếu đang tải hoặc không có sách nào thì không render gì cả (ẩn component)
-  if (loading || data.length === 0) return null;
+  if (loading || !data || data.length === 0) return null;
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-bold">
-        Sắp đến hạn trả
-      </h2>
+    <div className="space-y-4 animate-in fade-in duration-300">
+      <div className="flex items-center gap-2.5 text-slate-800">
+        <div className="p-1.5 bg-orange-100 text-orange-600 rounded-lg shadow-sm">
+          <Clock size={18} strokeWidth={2.5} />
+        </div>
+        <h2 className="text-lg font-bold tracking-tight">
+          Sắp đến hạn trả
+        </h2>
+      </div>
 
       <div className="space-y-3">
         {data.map((book) => (
           <BookStatusCard
             key={book.id}
-            book={book}
-            type="borrowed"
+            book={{ ...book, type: "borrow" }}
           />
         ))}
       </div>

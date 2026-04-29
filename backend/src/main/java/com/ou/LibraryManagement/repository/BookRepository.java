@@ -11,10 +11,8 @@ import java.util.List;
 @Repository
 public interface BookRepository extends JpaRepository<Book, Long> {
 
-    // Lấy tất cả sách đang hoạt động (cho Reader)
     List<Book> findAllByIsActiveTrue();
 
-    // Tìm kiếm theo tên (chỉ lấy sách active)
     List<Book> findByTitleContainingIgnoreCaseAndIsActiveTrue(String keyword);
 
     boolean existsByAuthorId(Long id);

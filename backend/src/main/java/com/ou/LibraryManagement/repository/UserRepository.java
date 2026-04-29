@@ -13,11 +13,9 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
     boolean existsByEmail(String email);
-    // Check trùng email nhưng bỏ qua ID của chính mình khi update
     boolean existsByEmailAndIdNot(String email, Long id);
     long countByRoleName(String roleName);
 
-    // Omni-search: Tìm theo SĐT, Email hoặc ID (Ép ID sang chuỗi để so sánh)
     @Query("SELECT u FROM User u WHERE u.role.name = 'ROLE_READER' AND " +
             "(u.phone = :keyword OR u.email = :keyword OR CAST(u.id AS string) = :keyword)")
     Optional<User> findReaderForPos(@Param("keyword") String keyword);
@@ -41,4 +39,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 """)
     List<User> searchReaders(@Param("keyword") String keyword);
 
+    long countByRole_Name(String roleName);
+
+    List<User> findByRole_Name(String s);
 }

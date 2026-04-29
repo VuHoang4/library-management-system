@@ -9,12 +9,9 @@ import org.mapstruct.MappingTarget;
 @Mapper(componentModel = "spring")
 public interface PublisherMapper {
 
-    // Chuyen tu Entity sang Response DTO
     PublisherResponse toResponse(Publisher publisher);
 
-    // Chuyen tu Request DTO sang Entity de tao moi
     Publisher toEntity(PublisherRequest request);
 
-    // Cap nhat du lieu tu Request len Entity co san
     void updateEntityFromRequest(PublisherRequest request, @MappingTarget Publisher publisher);
 }

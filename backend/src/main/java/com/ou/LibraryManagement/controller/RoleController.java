@@ -22,7 +22,6 @@ public class RoleController {
 
     @GetMapping
     public ResponseEntity<List<RoleResponse>> getAll(){
-        // 3. Gọi Core lấy Entity -> Dùng Mapper chuyển sang Response
         List<RoleResponse> responses = roleService.findAllEntities()
                 .stream()
                 .map(roleMapper::toResponse)

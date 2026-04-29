@@ -23,9 +23,9 @@ import java.util.Optional;
 public class OverdueScheduler {
 
     private final BorrowRepository borrowRepository;
-    private final FineService fineService;                 // ✅ đổi
-    private final SystemSettingService settingService;     // ✅ đổi
-    private final NotificationService notificationService; // (tuỳ bạn có dùng hay không)
+    private final FineService fineService;
+    private final SystemSettingService settingService;
+    private final NotificationService notificationService;
 
     @Scheduled(fixedRate = 1500000)
     @Transactional
@@ -46,7 +46,7 @@ public class OverdueScheduler {
             double currentAmount = daysLate * setting.getFinePerDay();
 
             Optional<Fine> existingFineOpt =
-                    fineService.findByBorrowId(record.getId()); // ✅ đổi
+                    fineService.findByBorrowId(record.getId());
 
             if (existingFineOpt.isPresent()) {
 
@@ -54,7 +54,7 @@ public class OverdueScheduler {
 
                 if (existingFine.getStatus() == FineStatus.UNPAID) {
                     existingFine.setAmount(currentAmount);
-                    fineService.save(existingFine); // ✅ đổi
+                    fineService.save(existingFine);
                 }
 
             } else {
@@ -65,7 +65,7 @@ public class OverdueScheduler {
                 newFine.setAmount(currentAmount);
                 newFine.setStatus(FineStatus.UNPAID);
 
-                fineService.save(newFine); // ✅ đổi
+                fineService.save(newFine);
             }
         }
     }

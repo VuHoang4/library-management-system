@@ -1,5 +1,5 @@
-// src/constants/paymentConfig.js
-import { payWithMoMo, payWithVNPay } from "../features/payment/services/paymentApi";
+import { Wallet, Landmark } from "lucide-react";
+import { paymentApi } from "../features/payment/services/paymentApi";
 
 export const PAYMENT_GATEWAYS = [
   {
@@ -8,8 +8,8 @@ export const PAYMENT_GATEWAYS = [
     colorLabel: "text-[#A50064]",
     borderColor: "border-[#A50064]",
     bgActive: "bg-[#A50064]/10",
-    icon: "👛", // Hoặc dùng URL ảnh logo thật
-    apiHandler: payWithMoMo, // Gắn trực tiếp hàm gọi API vào đây
+    icon: Wallet, 
+    apiHandler: paymentApi.payWithMoMo,
   },
   {
     id: "VNPAY",
@@ -17,14 +17,7 @@ export const PAYMENT_GATEWAYS = [
     colorLabel: "text-[#005BAA]",
     borderColor: "border-[#005BAA]",
     bgActive: "bg-[#005BAA]/10",
-    icon: "🏦", // Hoặc dùng URL ảnh logo thật
-    apiHandler: payWithVNPay,
-  },
-  // Tương lai muốn thêm ZaloPay? Chỉ việc thêm 1 object vào đây, KHÔNG cần chạm vào code UI!
-  // {
-  //   id: "ZALOPAY",
-  //   name: "ZaloPay",
-  //   ...
-  //   apiHandler: payWithZaloPay
-  // }
+    icon: Landmark, 
+    apiHandler: paymentApi.payWithVNPay,
+  }
 ];

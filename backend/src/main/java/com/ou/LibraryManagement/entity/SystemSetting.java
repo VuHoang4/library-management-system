@@ -16,38 +16,42 @@ public class SystemSetting {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    //  SỬA: Không được để trống. (Thường gán luôn giá trị mặc định cho an toàn)
     @Column(nullable = false)
     private int borrowDays = 14;
 
-    //  SỬA: Không được để trống
     @Column(nullable = false)
     private double finePerDay = 5000.0;
 
-    //  SỬA: Không được để trống
     @Column(nullable = false)
     private int maxRenew = 2;
 
     @Column(nullable = false)
+    private int maxBooksAllowed = 5;
+
+    @Column(nullable = false)
+    private int holdExpirationDays = 3;
+
+    @Column(nullable = false)
     private boolean active = true;
 
-    //  THÊM: Thời gian tạo cấu hình
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    //  THÊM: Thời gian cập nhật cấu hình lần cuối (Rất quan trọng để Audit)
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    public SystemSetting() {}
+    @Column(name = "updated_by")
+    private String updatedBy;
+
 
     @PrePersist
-    public void prePersist() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
     @PreUpdate
-    public void preUpdate() {
-        updatedAt = LocalDateTime.now();
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 }

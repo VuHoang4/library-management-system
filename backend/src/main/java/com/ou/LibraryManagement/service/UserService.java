@@ -125,7 +125,6 @@ public class UserService {
 
         userMapper.updateEntityFromRequest(request, user);
 
-        // 🔐 chỉ encode khi có password mới
         if (request.password() != null && !request.password().isBlank()) {
             user.setPassword(passwordEncoder.encode(request.password()));
         }
@@ -135,19 +134,34 @@ public class UserService {
         return userMapper.toResponse(userRepository.save(user));
     }
 
-    public List<UserResponse> search(String keyword) {
+    public List<UserResponse> search(String keyword, String role) {
+
+        List<User> users;
+
         if (keyword == null || keyword.isBlank()) {
-            return userRepository.findAll()
-                    .stream()
-                    .map(userMapper::toResponse)
+            users = userRepository.findAll();
+        } else {
+            users = userRepository.search(keyword);
+        }
+
+        if (role != null) {
+            users = users.stream()
+                    .filter(u -> u.getRole().getName().equalsIgnoreCase(role))
                     .toList();
         }
 
-        return userRepository
-                .search(keyword)
-                .stream()
+        return users.stream()
                 .map(userMapper::toResponse)
                 .toList();
+    }
+
+    @Transactional
+    public UserResponse toggleActive(Long id) {
+        User user = findEntityById(id);
+
+        user.setActive(!user.isActive());
+
+        return userMapper.toResponse(userRepository.save(user));
     }
 
     public List<UserResponse> searchReaders(String keyword) {

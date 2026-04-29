@@ -7,9 +7,9 @@ public record CategoryResponse(
         String name,
         String description,
 
-        //  THÊM: Các trường mới khớp với Entity
+
         String imageUrl,
-        boolean isActive,
+        boolean active,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {}

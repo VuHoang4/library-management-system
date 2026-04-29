@@ -19,19 +19,15 @@ public class Category {
     @Column(nullable = false, length = 100)
     private String name;
 
-    //  SỬA: Ép kiểu TEXT đề phòng nội dung dài
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    //  THÊM: Link ảnh/icon minh họa cho Thể loại (Dùng hiển thị trên App/Web)
     @Column(columnDefinition = "TEXT")
     private String imageUrl;
 
-    //  THÊM: Cờ xóa mềm
-    @Column(nullable = false)
-    private boolean isActive = true;
+    @Column( nullable = false)
+    private boolean active = true;
 
-    //  THÊM: Timestamps
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 

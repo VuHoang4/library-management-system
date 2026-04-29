@@ -1,6 +1,5 @@
 import { Mail, Lock } from "lucide-react";
 import { useState } from "react";
-// Nhúng vũ khí từ kho UI vào
 import { Input, Button } from "../../../components/ui"; 
 
 function LoginForm({ onSubmit, isLoading, error }) {
@@ -20,14 +19,12 @@ function LoginForm({ onSubmit, isLoading, error }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      
       {error && (
-        <div className="p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100 text-center animate-in fade-in zoom-in-95">
+        <div className="p-3 bg-rose-50 text-rose-600 text-sm rounded-xl border border-rose-100 text-center animate-in fade-in zoom-in-95">
           {error}
         </div>
       )}
 
-      {/* Sử dụng Component Input cực kỳ gọn gàng */}
       <Input
         label="Email"
         type="email"
@@ -55,7 +52,6 @@ function LoginForm({ onSubmit, isLoading, error }) {
         </p>
       </div>
 
-      {/* Sử dụng Component Button tự động lo hiệu ứng Loading */}
       <Button 
         type="submit" 
         className="w-full py-2.5 mt-2 text-base rounded-xl"

@@ -30,8 +30,6 @@ public class BookController {
         this.userService = userService;
     }
 
-    // ===== READER =====
-
     @GetMapping
     public ResponseEntity<List<BookResponse>> getAll(
             @RequestParam(required = false) String search,
@@ -39,7 +37,7 @@ public class BookController {
             Principal principal) {
 
         Long userId = getUserId(principal);
-        String role = getRole(principal); // 👈 thêm dòng này
+        String role = getRole(principal);
 
         return ResponseEntity.ok(
                 bookService.getAll(search, categoryId, userId, role)
@@ -53,16 +51,14 @@ public class BookController {
         );
     }
 
-    // ===== ADMIN =====
-
-  //  @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'LIBRARIAN')")
     @PostMapping
     public ResponseEntity<BookResponse> create(@Valid @RequestBody BookRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(bookService.create(request));
     }
 
-   // @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'LIBRARIAN')")
     @PutMapping("/{id}")
     public ResponseEntity<BookResponse> update(@PathVariable Long id,
                                                @Valid @RequestBody BookRequest request) {
@@ -71,14 +67,12 @@ public class BookController {
         );
     }
 
-   // @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'LIBRARIAN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         bookService.delete(id);
         return ResponseEntity.noContent().build();
     }
-
-    // ===== HELPER =====
 
     private Long getUserId(Principal principal) {
         if (principal == null) return null;

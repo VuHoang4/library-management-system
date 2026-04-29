@@ -23,6 +23,48 @@ public class SystemSettingService {
         this.mapper = mapper;
     }
 
+    // ================= GET ACTIVE =================
+    public SystemSettingResponse getActive() {
+
+        SystemSetting setting = repository.findByActiveTrue()
+                .orElseThrow(() -> new RuntimeException("Không có cấu hình hệ thống"));
+
+        return mapToResponse(setting);
+    }
+
+    // ================= UPDATE =================
+    @Transactional
+    public SystemSettingResponse update(SystemSettingRequest request) {
+
+        SystemSetting setting = repository.findByActiveTrue()
+                .orElseThrow(() -> new RuntimeException("Không có cấu hình hệ thống"));
+
+        setting.setBorrowDays(request.borrowDays());
+        setting.setFinePerDay(request.finePerDay());
+        setting.setMaxBooksAllowed(request.maxBooksAllowed());
+        setting.setHoldExpirationDays(request.holdExpirationDays());
+
+        SystemSetting saved = repository.save(setting);
+
+        return mapToResponse(saved);
+    }
+
+    // ================= MAPPER =================
+    private SystemSettingResponse mapToResponse(SystemSetting s) {
+        return new SystemSettingResponse(
+                s.getId(),
+                s.getBorrowDays(),
+                s.getFinePerDay(),
+                s.getMaxBooksAllowed(),
+                s.getHoldExpirationDays(),
+                s.getMaxRenew(),
+                s.isActive(),
+                s.getCreatedAt(),
+                s.getUpdatedAt()
+        );
+    }
+
+
     // ================== READ ==================
 
     public List<SystemSettingResponse> getAllSettings() {
@@ -52,23 +94,23 @@ public class SystemSettingService {
 
     // ================== ADMIN ==================
 
-    @Transactional
-    public SystemSettingResponse updateSetting(Long id, SystemSettingRequest request) {
-
-        SystemSetting setting = findEntityById(id);
-
-        // 🌟 đảm bảo chỉ có 1 active
-        if (request.active()) {
-            repository.findByActiveTrue().ifPresent(active -> {
-                if (!active.getId().equals(id)) {
-                    active.setActive(false);
-                    repository.save(active);
-                }
-            });
-        }
-
-        mapper.updateEntityFromRequest(request, setting);
-
-        return mapper.toResponse(repository.save(setting));
-    }
+//    @Transactional
+//    public SystemSettingResponse updateSetting(Long id, SystemSettingRequest request) {
+//
+//        SystemSetting setting = findEntityById(id);
+//
+//        // 🌟 đảm bảo chỉ có 1 active
+//        if (request.active()) {
+//            repository.findByActiveTrue().ifPresent(active -> {
+//                if (!active.getId().equals(id)) {
+//                    active.setActive(false);
+//                    repository.save(active);
+//                }
+//            });
+//        }
+//
+//        mapper.updateEntityFromRequest(request, setting);
+//
+//        return mapper.toResponse(repository.save(setting));
+//    }
 }

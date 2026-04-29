@@ -1,19 +1,31 @@
 import api from "../../../services/api";
 
+export const paymentApi = {
+  getMyPayments: () => {
+    return api.get("/payments/me");
+  },
 
-// Lấy lịch sử giao dịch của TÔI
-export const getMyPayments = () => {
-  return api.get("/payments/me");
-};
+  payWithMoMo: (fineId) => {
+    return api.post(`/payments/momo?fineId=${fineId}`);
+  },
 
-// Gọi API tạo thanh toán MoMo
-export const payWithMoMo = (fineId) => {
-  // Backend expects POST /api/payments/momo?fineId=...
-  return api.post(`/payments/momo?fineId=${fineId}`);
-};
+  payWithVNPay: (fineId) => {
+    return api.get(`/payments/vnpay?fineId=${fineId}`);
+  },
 
-// Gọi API tạo thanh toán VNPay
-export const payWithVNPay = (fineId) => {
-  // Backend expects GET /api/payments/vnpay?fineId=...
-  return api.get(`/payments/vnpay?fineId=${fineId}`);
+  getPayments: (params) => {
+    return api.get("/payments", { params });
+  },
+
+  getUnpaidFines: () => {
+    return api.get("/fines/unpaid");
+  },
+
+  payFineCash: (fineId) => {
+    return api.put(`/payments/fines/${fineId}/pay-cash`);
+  },
+
+  getPaymentDetail: (id) => {
+    return api.get(`/payments/${id}`);
+  }
 };

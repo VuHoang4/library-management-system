@@ -7,6 +7,6 @@ public record NotificationResponse(
         String title,
         String content,
         String type,
-        boolean unread, // Dung de hien thi cham do thong bao
+        boolean unread,
         LocalDateTime createdAt
 ) {}

@@ -14,41 +14,40 @@ function OverdueAlert() {
       .then((res) => {
         setOverdueBooks(res.data);
       })
-      .catch((err) => console.error("Lỗi lấy sách quá hạn:", err))
+      .catch((err) => console.error(err))
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading || overdueBooks.length === 0) return null;
+  if (loading || !overdueBooks || overdueBooks.length === 0) return null;
 
-  // Tính tổng tiền phạt. 
-  // Lưu ý: Đảm bảo Backend trả về field 'fine' (hoặc 'fineAmount') cho mỗi phần tử trong mảng overdueBooks
-  const totalFine = overdueBooks.reduce((sum, book) => sum + (book.fine || 0), 0);
+  const totalFine = overdueBooks.reduce((sum, book) => sum + (book.fine || book.fineAmount || 0), 0);
 
   return (
-    <div className="bg-red-50 border border-red-200 p-5 rounded-2xl flex justify-between items-center animate-in fade-in slide-in-from-top-2">
+    <div className="bg-rose-50 border border-rose-200 p-4 sm:p-5 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm animate-in fade-in slide-in-from-top-2">
       <div className="flex items-center gap-4">
-        <AlertTriangle className="text-red-500" />
+        <div className="p-2.5 bg-rose-100 rounded-xl text-rose-600 shrink-0 shadow-sm border border-rose-200/50">
+          <AlertTriangle size={24} strokeWidth={2} />
+        </div>
 
         <div>
-          <h3 className="font-semibold text-red-600">
+          <h3 className="font-bold text-rose-800 text-base">
             Bạn có {overdueBooks.length} sách trễ hạn
           </h3>
 
           {totalFine > 0 && (
-            <p className="text-sm text-red-500">
-              Tổng tiền phạt: {totalFine.toLocaleString()}đ
+            <p className="text-sm font-semibold text-rose-600 mt-0.5">
+              Tổng tiền phạt: {totalFine.toLocaleString("vi-VN")} đ
             </p>
           )}
         </div>
       </div>
 
-      {/* Thay vì dùng thẻ <button> cũ */}
       <Button
         variant="danger"
         onClick={() => navigate("/payments")}
-        className="shadow-sm"
+        className="w-full sm:w-auto shadow-sm px-6"
       >
-        Xem ngay
+        Xem chi tiết
       </Button>
     </div>
   );

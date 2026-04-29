@@ -104,15 +104,12 @@ public class PaymentService {
 
         Fine fine = findFine(fineId);
 
-        // ❗ đã thanh toán rồi
         if (fine.getStatus() == FineStatus.PAID) {
             throw new BadRequestException("Phiếu phạt đã được thanh toán.");
         }
 
-        // ❗ phải trả sách trước
         validateFinePayable(fine);
 
-        // 👉 tạo payment CASH
         Payment payment = new Payment();
         payment.setFine(fine);
         payment.setUser(fine.getUser());
@@ -122,7 +119,6 @@ public class PaymentService {
 
         Payment saved = paymentRepository.save(payment);
 
-        // 👉 update fine
         fine.setStatus(FineStatus.PAID);
         fineRepository.save(fine);
 
@@ -134,7 +130,6 @@ public class PaymentService {
 
         Fine fine = findFine(fineId);
 
-        // Cú chặn thứ 2 dành cho MoMo
         validateFinePayable(fine);
 
         String orderId = UUID.randomUUID().toString();
@@ -156,13 +151,13 @@ public class PaymentService {
 
         Fine fine = findFine(fineId);
 
-        // Cú chặn thứ 3 dành cho VNPay
+
         validateFinePayable(fine);
 
         long amount = (long) (fine.getAmount() * 100);
         String orderId = UUID.randomUUID().toString();
 
-        // tạo payment
+
         Payment payment = new Payment();
         payment.setFine(fine);
         payment.setUser(fine.getUser());
@@ -203,7 +198,7 @@ public class PaymentService {
         Payment payment = paymentRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new NotFoundException("Payment not found"));
 
-        //  tránh update 2 lần
+
         if(payment.getStatus() != PaymentStatus.PENDING){
             return;
         }
@@ -213,7 +208,7 @@ public class PaymentService {
 
             Fine fine = payment.getFine();
 
-            //  check amount (anti hack)
+
             if(Double.compare(payment.getAmount(), fine.getAmount()) != 0){
                 throw new RuntimeException("Amount mismatch");
             }
@@ -235,7 +230,7 @@ public class PaymentService {
             fields.put(k, v[0]);
         });
 
-        // DEBUG
+
         System.out.println("VNPay return params: " + fields);
 
         // Đường dẫn gốc của Frontend React
@@ -296,16 +291,12 @@ public class PaymentService {
                 .orElseThrow(() -> new NotFoundException("Fine not found"));
     }
 
-    /**
-     * Hàm dùng chung để kiểm tra xem một phiếu phạt có hợp lệ để thanh toán hay không
-     */
+
     private void validateFinePayable(Fine fine) {
-        // 1. Kiểm tra xem đã thanh toán chưa
         if (fine.getStatus() == FineStatus.PAID) {
             throw new BadRequestException("Phiếu phạt này đã được thanh toán.");
         }
 
-        // 2. Kiểm tra xem đã trả sách chưa (Bắt buộc phải trả sách mới chốt được tiền phạt)
         if (fine.getBorrow() != null && fine.getBorrow().getReturnDate() == null) {
             throw new BadRequestException("Không thể thanh toán! Vui lòng mang sách đến thư viện để trả và chốt hóa đơn trước.");
         }
@@ -315,7 +306,7 @@ public class PaymentService {
         Payment payment = new Payment();
 
         payment.setFine(fine);
-        payment.setUser(fine.getUser()); // Bổ sung set User để query getByUser không bị lỗi
+        payment.setUser(fine.getUser());
         payment.setAmount(fine.getAmount());
         payment.setMethod(request.method());
         payment.setStatus(PaymentStatus.PENDING);

@@ -23,7 +23,6 @@ public record BookRequest(
         @Min(value = 0, message = "Số lượng (Quantity) phải lớn hơn hoặc bằng 0")
         int quantity,
 
-        //  THÊM RẤT QUAN TRỌNG: ID của các khóa ngoại để lưu vào Database
         @NotNull(message = "ID Tác giả không được để trống")
         Long authorId,
 

@@ -22,35 +22,33 @@ public class FineController {
         this.fineService = fineService;
     }
 
-    // ================= LIBRARIAN =================
-
-  //  @PreAuthorize("hasAnyRole('THU_THU','ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'LIBRARIAN')")
     @GetMapping
     public ResponseEntity<List<FineResponse>> getAll() {
         return ResponseEntity.ok(fineService.getAllFines());
     }
 
-   // @PreAuthorize("hasAnyRole('THU_THU','ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'LIBRARIAN')")
     @GetMapping("/{id}")
     public ResponseEntity<FineResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(fineService.getFineDetail(id));
     }
 
-   // @PreAuthorize("hasAnyRole('THU_THU','ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'LIBRARIAN')")
     @GetMapping("/user/{userId}/unpaid")
     public ResponseEntity<List<FineResponse>> getUnpaidByUser(@PathVariable Long userId) {
         return ResponseEntity.ok(
                 fineService.getUnpaidFinesByUser(userId)
         );
     }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'LIBRARIAN')")
     @GetMapping("/unpaid")
     public ResponseEntity<List<FineResponse>> getUnpaidFines() {
         return ResponseEntity.ok(fineService.getUnpaidFines());
     }
 
-    // ================= READER =================
-
-   // @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/me")
     public ResponseEntity<List<FineResponse>> getMyFines(Principal principal) {
         return ResponseEntity.ok(
@@ -58,7 +56,7 @@ public class FineController {
         );
     }
 
-  //  @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/me/unpaid")
     public ResponseEntity<List<FineResponse>> getMyUnpaid(Principal principal) {
         return ResponseEntity.ok(

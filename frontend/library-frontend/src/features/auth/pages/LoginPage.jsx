@@ -1,10 +1,9 @@
 import { Link } from "react-router-dom";
-import AuthLayout from "../../../layouts/AuthLayout"; // Import Layout
+import AuthLayout from "../../../layouts/AuthLayout";
 import LoginForm from "../components/LoginForm";
 import { useAuth } from "../hooks/useAuth";
 
 function LoginPage() {
-  // Lấy logic gọi API từ Custom Hook
   const { handleLogin, isLoading, error } = useAuth();
 
   return (
@@ -14,10 +13,8 @@ function LoginPage() {
         Vui lòng đăng nhập để tiếp tục khám phá thư viện
       </p>
 
-      {/* NHÚNG FORM VÀO ĐÂY */}
       <LoginForm onSubmit={handleLogin} isLoading={isLoading} error={error} />
 
-      {/* REGISTER LINK */}
       <p className="text-center text-sm mt-6">
         Chưa có tài khoản?{" "}
         <Link

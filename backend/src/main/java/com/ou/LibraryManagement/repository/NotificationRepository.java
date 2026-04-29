@@ -11,9 +11,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     List<Notification> findByUserEmailOrderByCreatedAtDesc(String email);
 
-    // Đếm số thông báo chưa đọc cho độc giả (để hiện chấm đỏ trên UI)
     long countByUserIdAndIsReadFalse(Long userId);
 
-    // Tìm tất cả thông báo chưa đọc của 1 user để xử lý hàng loạt
     List<Notification> findByUserEmailAndIsReadFalse(String email);
 }

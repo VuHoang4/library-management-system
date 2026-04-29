@@ -8,12 +8,12 @@ import com.ou.LibraryManagement.service.PaymentService;
 import com.ou.LibraryManagement.service.momo.MoMoService;
 
 import jakarta.servlet.http.HttpServletRequest;
-
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.io.IOException;
 import java.util.List;
@@ -35,9 +35,7 @@ public class PaymentController {
         this.paymentMapper = paymentMapper;
     }
 
-    // 🔒 ADMIN (xem toàn bộ)
-//    @PreAuthorize("hasAuthority('ADMIN')")
-// 🔓 ADMIN xem tất cả
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'LIBRARIAN')")
     @GetMapping
     public ResponseEntity<List<PaymentResponse>> getPayments(
             @RequestParam(required = false) String status,
@@ -46,22 +44,23 @@ public class PaymentController {
         return ResponseEntity.ok(paymentService.getPayments(status, search));
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'LIBRARIAN')")
     @PutMapping("/fines/{id}/pay-cash")
     public ResponseEntity<PaymentResponse> payCash(@PathVariable Long id) {
         return ResponseEntity.ok(paymentService.confirmFinePayment(id));
     }
-    // 🔓 USER xem payment của mình
+
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/me")
     public ResponseEntity<List<PaymentResponse>> getMyPayments(Authentication auth){
         List<PaymentResponse> responses = paymentService.findEntitiesByEmail(auth.getName())
                 .stream()
-                .map(paymentMapper::toResponse) // 3. Tương tự, map ở đây
+                .map(paymentMapper::toResponse)
                 .toList();
         return ResponseEntity.ok(responses);
     }
 
-    // 🔓 USER thanh toán fine
-//    @PreAuthorize("hasAuthority('USER')")
+    @PreAuthorize("isAuthenticated()")
     @PostMapping
     public ResponseEntity<PaymentResponse> payFine(@RequestBody PaymentRequest request){
         return ResponseEntity
@@ -69,55 +68,41 @@ public class PaymentController {
                 .body(paymentService.payFine(request));
     }
 
-    // 🔓 USER tạo MoMo payment
-//    @PreAuthorize("hasAuthority('USER')")
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/momo")
     public String payWithMoMo(@RequestParam Long fineId) throws Exception {
         return paymentService.createMoMoPayment(fineId);
     }
 
-    // 🔓 PUBLIC (callback từ MoMo)
     @PostMapping("/momo-ipn")
     public ResponseEntity<?> momoIPN(@RequestBody Map<String, Object> data) throws Exception {
-
-        System.out.println("IPN DATA: " + data);
-
         String orderId = (String) data.get("orderId");
         int resultCode = Integer.parseInt(data.get("resultCode").toString());
         String signature = (String) data.get("signature");
 
-        // DEV MODE
         if (!appConfig.momoSecure) {
             paymentService.updateStatus(orderId, resultCode == 0);
             return ResponseEntity.ok().build();
         }
 
-        // PROD MODE
         boolean valid = momoService.verifyIPN(data, signature);
-
         if (!valid) {
             return ResponseEntity.badRequest().body("Invalid signature");
         }
 
         paymentService.updateStatus(orderId, resultCode == 0);
-
         return ResponseEntity.ok().build();
     }
 
-    // 🔓 USER tạo VNPay
-//    @PreAuthorize("hasAuthority('USER')")
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/vnpay")
     public String payVNPay(@RequestParam Long fineId) {
         return paymentService.payWithVNPay(fineId);
     }
 
-    // 🔓 PUBLIC return từ VNPay
     @GetMapping("/vnpay-return")
     public void vnpayReturn(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        // Lấy URL từ logic xử lý của Service
         String redirectUrl = paymentService.handleVNPayReturn(request);
-
-        // Bắn lệnh Redirect để đẩy người dùng về lại React (localhost:3000)
         response.sendRedirect(redirectUrl);
     }
 }

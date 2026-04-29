@@ -6,10 +6,9 @@ import { Loading } from "../../../components/common";
 import ProfileForm from "../components/ProfileForm";
 import ChangePasswordForm from "../components/ChangePasswordForm";
 import { useToast } from "../../toast/useToast"; 
-import { userApi} from "../services/userApi";
+import { userApi } from "../services/userApi";
 
 function UserProfilePage() {
-  // Lấy thêm hàm setUser (hoặc hàm tương đương) từ AuthContext để update UI lập tức
   const { user, setUser } = useContext(AuthContext); 
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -19,11 +18,8 @@ function UserProfilePage() {
   const handleUpdateProfile = async (formData) => {
     setIsUpdatingProfile(true);
     try {
-      // 2. GỌI API THẬT
       const response = await userApi.updateProfile(formData);
       
-      // 3. Cập nhật lại AuthContext (nếu API trả về thông tin user mới)
-      // Điều này giúp Avatar, Tên ở Sidebar và Cột trái tự động thay đổi
       if (setUser && response.data) {
         setUser(response.data);
       }
@@ -31,7 +27,6 @@ function UserProfilePage() {
       toast.success("Cập nhật thông tin thành công!");
     } catch (error) {
       console.error(error);
-      // Lấy câu thông báo lỗi từ Backend (nếu có), nếu không thì dùng câu mặc định
       const errorMsg = error.response?.data?.message || "Đã xảy ra lỗi khi cập nhật thông tin.";
       toast.error(errorMsg);
     } finally {
@@ -42,9 +37,7 @@ function UserProfilePage() {
   const handleChangePassword = async (formData) => {
     setIsChangingPassword(true);
     try {
-      // 2. GỌI API THẬT (Gửi currentPassword và newPassword)
       await userApi.changePassword(formData);
-      
       toast.success("Đổi mật khẩu thành công!");
     } catch (error) {
       console.error(error);
@@ -73,11 +66,9 @@ function UserProfilePage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* CỘT TRÁI: Avatar và Badge */}
         <div className="lg:col-span-1">
           <Card className="p-6 flex flex-col items-center text-center">
             <div className="w-24 h-24 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-4xl mb-4 shadow-sm border-4 border-white ring-2 ring-slate-100 overflow-hidden">
-              {/* Nếu BE trả về avatarUrl thì hiển thị ảnh, không thì hiện Icon */}
               {user.avatarUrl ? (
                 <img src={user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
@@ -85,7 +76,6 @@ function UserProfilePage() {
               )}
             </div>
             
-            {/* Ưu tiên hiển thị name/fullName được trả về từ BE */}
             <h2 className="text-xl font-bold text-slate-800">{user.name || user.fullName || "User"}</h2>
             <p className="text-sm text-slate-500 mb-3">{user.email}</p>
             
@@ -96,7 +86,6 @@ function UserProfilePage() {
           </Card>
         </div>
 
-        {/* CỘT PHẢI: Các Form */}
         <div className="lg:col-span-2 space-y-6">
           
           <Card className="p-6">

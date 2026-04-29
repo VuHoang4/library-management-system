@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Loading, Empty } from "../../../components/common";
-import { Pencil, Trash2 } from "lucide-react";
-import { ConfirmModal } from "../../../components/common/index";
+import { Pencil, Trash2, Image as ImageIcon, BookX } from "lucide-react";
+import { Loading, Empty, ConfirmModal } from "../../../components/common";
+import { Table, Button, Badge } from "../../../components/ui";
 
 export function BookTable({ books, isLoading, onDelete, onEdit }) {
   const [bookToDelete, setBookToDelete] = useState(null);
@@ -13,125 +13,119 @@ export function BookTable({ books, isLoading, onDelete, onEdit }) {
     }
   };
 
-  if (isLoading)
+  if (isLoading) {
     return (
       <div className="py-16">
         <Loading text="Đang đồng bộ dữ liệu..." />
       </div>
     );
+  }
 
-  if (books.length === 0)
+  if (!books || books.length === 0) {
     return (
       <div className="py-10">
         <Empty
           title="Kho sách trống"
           message="Chưa có dữ liệu hoặc không tìm thấy sách phù hợp."
+          icon={<BookX size={48} strokeWidth={1.5} />}
         />
       </div>
     );
+  }
+
+  const headers = [
+    "STT",
+    "Thông tin sách",
+    "Thể loại",
+    "Nhà xuất bản",
+    "Tổng số",
+    "Có sẵn",
+    "Thao tác"
+  ];
 
   return (
     <>
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse whitespace-nowrap">
-            <thead>
-              <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-500 text-xs uppercase tracking-wider">
-                <th className="px-6 py-4 font-bold w-20">STT</th>
-                <th className="px-6 py-4 font-bold">Thông tin sách</th>
-                <th className="px-6 py-4 font-bold">Thể loại</th>
-                {/* 🌟 THÊM CỘT NHÀ XUẤT BẢN */}
-                <th className="px-6 py-4 font-bold">Nhà xuất bản</th>
-                <th className="px-6 py-4 font-bold text-center">Tổng số</th>
-                <th className="px-6 py-4 font-bold text-center">Có sẵn</th>
-                <th className="px-6 py-4 font-bold text-right">Thao tác</th>
-              </tr>
-            </thead>
+      <Table headers={headers}>
+        {books.map((book, index) => (
+          <tr key={book.id} className="hover:bg-slate-50 transition-colors group border-b border-slate-100">
+            
+            <td className="px-6 py-4 text-center text-sm font-bold text-slate-500 w-16">
+              {index + 1}
+            </td>
 
-            <tbody className="divide-y divide-slate-100">
-              {books.map((book, index) => (
-                <tr key={book.id} className="hover:bg-blue-50/40 transition-colors group">
-                  {/* STT */}
-                  <td className="px-6 py-4 text-sm text-slate-400 font-medium">
-                    {index + 1}
-                  </td>
+            <td className="px-6 py-4">
+              <div className="flex items-center gap-4">
+                {book.imageUrl ? (
+                  <img 
+                    src={book.imageUrl} 
+                    alt={book.title}
+                    className="w-12 h-16 object-cover rounded-md shadow-sm border border-slate-200 shrink-0"
+                    onError={(e) => { e.target.style.display = 'none'; }}
+                  />
+                ) : (
+                  <div className="w-12 h-16 bg-slate-100 rounded-md flex items-center justify-center border border-slate-200 text-slate-400 shrink-0">
+                    <ImageIcon size={20} />
+                  </div>
+                )}
+                <div>
+                  <div className="font-bold text-slate-800 text-sm truncate max-w-[200px]" title={book.title}>
+                    {book.title}
+                  </div>
+                  <div className="text-slate-500 font-medium text-xs mt-1 truncate max-w-[200px]" title={book.authorName || book.author}>
+                    {book.authorName || book.author}
+                  </div>
+                </div>
+              </div>
+            </td>
 
-                  {/* 🌟 CẬP NHẬT: THÔNG TIN SÁCH (CÓ ẢNH BÌA) */}
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-4">
-                      {/* Ảnh thumbnail */}
-                      <div className="w-12 h-16 shrink-0 bg-slate-100 rounded-md overflow-hidden border border-slate-200 shadow-sm">
-                        <img 
-                          src={book.imageUrl || "https://via.placeholder.com/150x200?text=No+Image"} 
-                          alt={book.title}
-                          className="w-full h-full object-cover"
-                          onError={(e) => { e.target.src = "https://via.placeholder.com/150x200?text=Error" }} // Phòng hờ link ảnh die
-                        />
-                      </div>
-                      
-                      {/* Text Tên & Tác giả */}
-                      <div>
-                        <div className="font-semibold text-slate-800 text-sm truncate max-w-[200px]" title={book.title}>
-                          {book.title}
-                        </div>
-                        <div className="text-slate-500 text-xs mt-1 truncate max-w-[200px]" title={book.author}>
-                          {book.author}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
+            <td className="px-6 py-4">
+              <Badge variant="default">
+                {book.categoryName || book.category || "Chưa phân loại"}
+              </Badge>
+            </td>
 
-                  {/* Thể loại */}
-                  <td className="px-6 py-4">
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
-                      {book.category || "Chưa phân loại"}
-                    </span>
-                  </td>
+            <td className="px-6 py-4 text-sm font-medium text-slate-600">
+              {book.publisherName || book.publisher || "Đang cập nhật"}
+            </td>
 
-                  {/* 🌟 THÊM: NHÀ XUẤT BẢN */}
-                  <td className="px-6 py-4 text-sm text-slate-600">
-                    {book.publisher || "Đang cập nhật"}
-                  </td>
+            <td className="px-6 py-4 text-center text-sm font-bold text-slate-600">
+              {book.quantity}
+            </td>
 
-                  {/* Tổng số */}
-                  <td className="px-6 py-4 text-center text-sm font-semibold text-slate-600">
-                    {book.quantity}
-                  </td>
+            <td className="px-6 py-4 text-center">
+              <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${
+                book.available > 0 ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
+              }`}>
+                {book.available}
+              </span>
+            </td>
 
-                  {/* Có sẵn */}
-                  <td className="px-6 py-4 text-center">
-                    <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${
-                        book.available > 0 ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
-                      }`}>
-                      {book.available}
-                    </span>
-                  </td>
+            <td className="px-6 py-4 text-right">
+              <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <Button 
+                  variant="secondary" 
+                  size="sm" 
+                  onClick={() => onEdit(book)}
+                  title="Sửa thông tin"
+                  className="px-2 py-2"
+                >
+                  <Pencil size={16} />
+                </Button>
+                <Button 
+                  variant="danger" 
+                  size="sm" 
+                  onClick={() => setBookToDelete(book)}
+                  title="Xóa sách"
+                  className="px-2 py-2"
+                >
+                  <Trash2 size={16} />
+                </Button>
+              </div>
+            </td>
 
-                  {/* Thao tác */}
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                      <button
-                        onClick={() => onEdit(book)}
-                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="Sửa thông tin"
-                      >
-                        <Pencil size={18} />
-                      </button>
-                      <button
-                        onClick={() => setBookToDelete(book)}
-                        className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                        title="Xóa sách"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+          </tr>
+        ))}
+      </Table>
 
       <ConfirmModal
         isOpen={!!bookToDelete}

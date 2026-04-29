@@ -22,7 +22,6 @@ public class Reservation {
     @Column(nullable = false)
     private LocalDate reservationDate;
 
-    // Cho phép null vì trạng thái QUEUE sẽ chưa có ngày hết hạn
     private LocalDate expireDate;
 
     @Enumerated(EnumType.STRING)
@@ -33,17 +32,14 @@ public class Reservation {
     @Column(nullable = false, length = 20)
     private ReservationStatus status;
 
-    // THEM: fetch = FetchType.LAZY va nullable = false
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // THEM: fetch = FetchType.LAZY va nullable = false
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "book_id", nullable = false)
     private Book book;
 
-    // THEM: Timestamps de track chinh xac thoi gian ai dat truoc, ai dat sau
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
@@ -60,7 +56,6 @@ public class Reservation {
         updatedAt = LocalDateTime.now();
     }
 
-    // THEM: preUpdate
     @PreUpdate
     public void preUpdate() {
         updatedAt = LocalDateTime.now();

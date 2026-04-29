@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/api/librarian")
@@ -22,32 +23,33 @@ public class LibrarianController {
         this.service = service;
     }
 
-    // ================= SEARCH =================
-
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'LIBRARIAN')")
     @GetMapping("/readers/search")
     public ResponseEntity<ReaderProfileResponse> searchReader(@RequestParam String keyword) {
         return ResponseEntity.ok(service.searchReader(keyword));
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'LIBRARIAN')")
     @GetMapping("/books/search")
     public ResponseEntity<BookSearchResponse> searchBook(@RequestParam String keyword) {
         return ResponseEntity.ok(service.findBook(keyword));
     }
 
-    // ================= BORROW FLOW =================
-
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'LIBRARIAN')")
     @PostMapping("/checkout")
     public ResponseEntity<Void> checkout(@Valid @RequestBody CheckoutRequest request) {
         service.checkout(request);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'LIBRARIAN')")
     @PutMapping("/borrows/{id}/return")
     public ResponseEntity<Void> returnBook(@PathVariable Long id) {
         service.returnBook(id);
         return ResponseEntity.ok().build();
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'LIBRARIAN')")
     @PostMapping("/holding/complete")
     public ResponseEntity<Void> giveHoldingBook(@Valid @RequestBody BorrowRequest request) {
         service.giveHoldingBook(request);

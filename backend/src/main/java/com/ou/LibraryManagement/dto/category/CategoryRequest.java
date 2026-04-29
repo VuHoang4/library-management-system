@@ -11,7 +11,7 @@ public record CategoryRequest(
 
         String description,
 
-        //  THÊM: Icon/Ảnh minh họa cho Thể loại
+
         String imageUrl
 
 ) {}

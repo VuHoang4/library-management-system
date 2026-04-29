@@ -9,10 +9,8 @@ export const useCategories = () => {
     const fetchCategories = async () => {
       setIsCatLoading(true);
       try {
-        // Chỉ cần gọi hàm, không cần quan tâm đến URL hay cấu hình Header ở đây nữa
-        const response = await categoryApi.getCategories(); 
+        const response = await categoryApi.getAll(); 
         
-        // Nhớ check xem cấu trúc response của axios trả về nhé (thường data nằm trong response.data)
         const data = response.data || response; 
         
         setCategories([{ id: "all", name: "Tất cả" }, ...data]);

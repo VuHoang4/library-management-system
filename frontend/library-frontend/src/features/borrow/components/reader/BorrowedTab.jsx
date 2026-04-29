@@ -1,8 +1,9 @@
 import { useEffect, useState, useContext, useMemo } from "react";
+import { Library } from "lucide-react";
 import { AuthContext } from "../../../../context/AuthContext";
 import BookStatusCard from "./BookStatusCard";
 import { useBorrow } from "../../hooks/useBorrow";
-import { Loading, Empty } from "../../../../components/common"; // Import Vũ khí
+import { Loading, Empty } from "../../../../components/common";
 
 function BorrowedTab() {
   const { user } = useContext(AuthContext);
@@ -14,10 +15,14 @@ function BorrowedTab() {
     if (user) fetchBorrowedBooks();
   }, [user, fetchBorrowedBooks]);
 
-  const isOverdue = (book) =>
-    book.status === "BORROWED" &&
-    !book.returnDate &&
-    new Date(book.endDate) < new Date();
+  const isOverdue = (book) => {
+    if (book.status !== "BORROWED" || book.returnDate || !book.endDate) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const due = new Date(book.endDate);
+    due.setHours(0, 0, 0, 0);
+    return today > due;
+  };
 
   const filteredBooks = useMemo(() => {
     return books.filter((book) => {
@@ -30,13 +35,16 @@ function BorrowedTab() {
   }, [books, filter]);
 
   if (isLoading && books.length === 0) {
-    return <div className="py-16"><Loading text="Đang đồng bộ danh sách mượn sách..." /></div>;
+    return (
+      <div className="py-16">
+        <Loading text="Đang đồng bộ danh sách mượn sách..." />
+      </div>
+    );
   }
 
   return (
     <div className="animate-in fade-in duration-300">
-      {/* FILTER UI */}
-      <div className="flex gap-2 mb-6 flex-wrap border-b border-slate-100 pb-4">
+      <div className="flex gap-2 mb-6 overflow-x-auto custom-scrollbar border-b border-slate-100 pb-4">
         {[
           { key: "ALL", label: "Tất cả" },
           { key: "BORROWED", label: "Đang mượn" },
@@ -46,7 +54,7 @@ function BorrowedTab() {
           <button
             key={item.key}
             onClick={() => setFilter(item.key)}
-            className={`text-sm px-4 py-2 rounded-full font-semibold transition-all ${
+            className={`whitespace-nowrap text-sm px-4 py-2 rounded-full font-semibold transition-all ${
               filter === item.key
                 ? "bg-slate-800 text-white shadow-md"
                 : "bg-white text-slate-500 border border-slate-200 hover:bg-slate-50 hover:text-slate-700"
@@ -57,14 +65,15 @@ function BorrowedTab() {
         ))}
       </div>
 
-      {/* LIST */}
       <div className="space-y-4">
         {filteredBooks.length === 0 ? (
-          <Empty 
-            title="Danh sách trống" 
-            message="Không tìm thấy cuốn sách nào khớp với trạng thái bạn đang chọn." 
-            icon="📚" 
-          />
+          <div className="py-10">
+            <Empty 
+              title="Danh sách trống" 
+              message="Không tìm thấy cuốn sách nào khớp với trạng thái bạn đang chọn." 
+              icon={<Library size={48} strokeWidth={1.5} />} 
+            />
+          </div>
         ) : (
           filteredBooks.map((book) => (
             <BookStatusCard 

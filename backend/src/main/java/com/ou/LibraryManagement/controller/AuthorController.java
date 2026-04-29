@@ -20,7 +20,6 @@ public class AuthorController {
         this.authorService = authorService;
     }
 
-    // ===== PUBLIC =====
     @GetMapping
     public ResponseEntity<List<AuthorResponse>> getAll() {
         return ResponseEntity.ok(authorService.getAll());
@@ -31,21 +30,20 @@ public class AuthorController {
         return ResponseEntity.ok(authorService.getById(id));
     }
 
-    // ===== ADMIN =====
-  //  @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping
     public ResponseEntity<AuthorResponse> create(@RequestBody @Valid AuthorRequest request) {
         return ResponseEntity.ok(authorService.create(request));
     }
 
-   // @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<AuthorResponse> update(@PathVariable Long id,
                                                  @RequestBody @Valid AuthorRequest request) {
         return ResponseEntity.ok(authorService.update(id, request));
     }
 
-   // @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         authorService.delete(id);

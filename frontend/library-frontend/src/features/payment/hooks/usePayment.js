@@ -1,21 +1,22 @@
 import { useState, useCallback } from "react";
-import { getMyPayments } from "../services/paymentApi";
-// ĐẢM BẢO đường dẫn import getMyFines này chính xác trong dự án của bạn
-import { getMyFines } from "../services/fineApi";
+import { paymentApi } from "../services/paymentApi";
+import { fineApi} from "../services/fineApi";
+import { useToast } from "../../toast/useToast";
 
 export function usePayment() {
   const [allFines, setAllFines] = useState([]);
   const [unpaidFines, setUnpaidFines] = useState([]);
   const [payments, setPayments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  const toast = useToast();
 
   const fetchPaymentData = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Gọi song song 2 API lấy Phí phạt và Lịch sử thanh toán
       const [finesRes, paymentsRes] = await Promise.all([
-        getMyFines(),
-        getMyPayments(),
+        fineApi.getMyFines(),
+        paymentApi.getMyPayments(),
       ]);
 
       const allFinesData = finesRes.data || [];
@@ -24,11 +25,12 @@ export function usePayment() {
       setUnpaidFines(allFinesData.filter((f) => f.status === "UNPAID"));
       setPayments(paymentsRes.data || []);
     } catch (error) {
-      console.error("Lỗi tải dữ liệu tài chính:", error);
+      console.error(error);
+      toast.error("Không thể tải dữ liệu tài chính.");
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [toast]);
 
   return {
     allFines,

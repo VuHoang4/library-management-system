@@ -8,23 +8,23 @@ export const userApi = {
   },
 
   getDashboardSummary: () => {
-    return api.get("/users/me/dashboard-summary");
+    return api.get("/dashboard/me/summary");
   },
 
   getDueSoonBooks: () => {
-    return api.get("/users/me/due-soon");
+    return api.get("/dashboard/me/due-soon");
   },
 
   getOverdueBooks: () => {
-    return api.get("/users/me/overdue");
+    return api.get("/dashboard/me/overdue");
   },
 
   updateProfile: (data) => {
-    return api.put("/users/me", data); // ✅ fix thiếu "/"
+    return api.put("/users/me", data);
   },
 
   changePassword: (data) => {
-    return api.put("/users/me/password", data); // ✅ fix endpoint
+    return api.put("/users/me/password", data); 
   },
 
   // ================= ADMIN =================
@@ -44,12 +44,11 @@ export const userApi = {
   updateUser: (id, data) => {
     return api.put(`/users/${id}`, data);
   },
+  toggleActive: (id) => api.put(`/users/${id}/toggle-active`),
 
   // ================= SEARCH =================
 
- getReaders: (keyword) => {
-  return api.get("/users/readers", {
-    params: { search: keyword }
-  });
+getUsers: (params = {}) => {
+  return api.get("/users", { params });
 }
 };

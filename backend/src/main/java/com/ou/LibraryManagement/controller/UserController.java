@@ -35,11 +35,17 @@ public class UserController {
 //        return ResponseEntity.ok(userService.getAllUsers());
 //    }
 
-    @GetMapping("/readers")
-    public ResponseEntity<List<UserResponse>> getReaders(
-            @RequestParam(required = false) String search
+    @GetMapping
+    public List<UserResponse> getUsers(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String role
     ) {
-        return ResponseEntity.ok(userService.searchReaders(search));
+        return userService.search(keyword, role);
+    }
+
+    @PutMapping("/{id}/toggle-active")
+    public ResponseEntity<UserResponse> toggle(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.toggleActive(id));
     }
 
    // @PreAuthorize("hasRole('ADMIN')")

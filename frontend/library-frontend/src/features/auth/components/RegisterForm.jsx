@@ -14,7 +14,7 @@ function RegisterForm({ onSubmit, isLoading, apiError }) {
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-    if (localError) setLocalError(""); // Xóa lỗi khi user bắt đầu gõ lại
+    if (localError) setLocalError("");
   };
 
   const handleSubmit = (e) => {
@@ -28,9 +28,8 @@ function RegisterForm({ onSubmit, isLoading, apiError }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      
       {apiError && (
-        <div className="p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100 text-center animate-in fade-in zoom-in-95">
+        <div className="p-3 bg-rose-50 text-rose-600 text-sm rounded-xl border border-rose-100 text-center animate-in fade-in zoom-in-95">
           {apiError}
         </div>
       )}
@@ -75,7 +74,7 @@ function RegisterForm({ onSubmit, isLoading, apiError }) {
         placeholder="••••••••"
         value={form.confirmPassword}
         onChange={handleChange}
-        error={localError} // Dòng này sẽ tự động làm Input có viền đỏ và hiện chữ cảnh báo
+        error={localError}
         required
       />
 
@@ -86,7 +85,6 @@ function RegisterForm({ onSubmit, isLoading, apiError }) {
       >
         Tạo tài khoản
       </Button>
-
     </form>
   );
 }

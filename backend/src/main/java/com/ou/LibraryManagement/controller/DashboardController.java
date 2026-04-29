@@ -15,27 +15,21 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/users") // Match với React: /api/users/me/dashboard-summary
+@RequestMapping("/api/dashboard")
 public class DashboardController {
 
     @Autowired
     private DashboardService dashboardService;
 
-    // Yêu cầu phải có role USER mới được xem (nếu bạn có dùng role)
-    // @PreAuthorize("hasAuthority('USER')")
-    @GetMapping("/me/dashboard-summary")
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/me/summary")
     public ResponseEntity<DashboardSummaryResponse> getMyDashboardSummary(Authentication authentication) {
-
-        // authentication.getName() sẽ lấy email (hoặc username) từ Token JWT
         String email = authentication.getName();
-
-        // Chuyển việc xử lý xuống tầng Service
         DashboardSummaryResponse summary = dashboardService.getSummaryByEmail(email);
-
         return ResponseEntity.ok(summary);
     }
 
-    // API: GET /api/users/me/due-soon
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/me/due-soon")
     public ResponseEntity<List<DueSoonResponse>> getMyDueSoonBooks(Authentication authentication) {
         String email = authentication.getName();
@@ -43,7 +37,7 @@ public class DashboardController {
         return ResponseEntity.ok(result);
     }
 
-    // API: GET /api/users/me/overdue
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/me/overdue")
     public ResponseEntity<List<OverdueResponse>> getMyOverdueBooks(Authentication authentication) {
         String email = authentication.getName();

@@ -9,9 +9,7 @@ import java.util.List;
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Long> {
 
-    // Lấy tất cả thể loại đang hoạt động (cho người dùng xem)
-    List<Category> findAllByIsActiveTrue();
+    List<Category> findAllByActiveTrue();
 
-    // Kiểm tra trùng tên (chỉ xét những thể loại đang active)
-    boolean existsByNameAndIsActiveTrue(String name);
+    boolean existsByNameAndActiveTrue(String name);
 }

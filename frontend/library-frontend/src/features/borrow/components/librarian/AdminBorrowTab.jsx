@@ -1,10 +1,13 @@
 import { useState, useMemo } from "react";
-import { Loading, Empty } from "../../../../components/common/index";
+import { Search, FileX } from "lucide-react";
+import { Loading, Empty } from "../../../../components/common";
+import { Input, Table, Badge } from "../../../../components/ui";
 import { useManageBorrows } from "../../hooks/useManageBorrows";
 
 export default function AdminBorrowTab() {
   const { borrows, isLoading } = useManageBorrows();
   const [filter, setFilter] = useState("ALL");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const normalizeDate = (dateString) => {
     if (!dateString) return new Date();
@@ -27,22 +30,45 @@ export default function AdminBorrowTab() {
     return "BORROWED_ACTIVE";                           
   };
 
+  const displayData = useMemo(() => {
+    let result = [...borrows];
+
+    result = result.filter((borrow) => {
+      const state = getDetailedState(borrow);
+      if (filter === "ALL") return true;
+      if (filter === "BORROWED") return state === "BORROWED_ACTIVE";
+      if (filter === "OVERDUE") return state === "OVERDUE_ACTIVE";
+      if (filter === "RETURNED") return state === "RETURNED_ON_TIME" || state === "RETURNED_LATE";
+      return true;
+    });
+
+    if (searchTerm.trim() !== "") {
+      const lowerKeyword = searchTerm.toLowerCase();
+      result = result.filter(
+        (borrow) =>
+          borrow.userName?.toLowerCase().includes(lowerKeyword) ||
+          borrow.bookTitle?.toLowerCase().includes(lowerKeyword)
+      );
+    }
+
+    return result.sort((a, b) => b.id - a.id);
+  }, [borrows, filter, searchTerm]);
+
   const getStatusBadge = (detailedState) => {
     switch (detailedState) {
       case "BORROWED_ACTIVE":
-        return <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">Đang mượn (Trong hạn)</span>;
+        return <Badge variant="info">Đang mượn (Trong hạn)</Badge>;
       case "OVERDUE_ACTIVE":
-        return <span className="px-3 py-1 bg-rose-100 text-rose-800 rounded-full text-xs font-bold flex items-center gap-1 w-fit border border-rose-200 shadow-sm">🚨 Quá hạn (Chưa trả)</span>;
+        return <Badge variant="danger" className="border-rose-200 shadow-sm flex items-center gap-1 w-fit">🚨 Quá hạn (Chưa trả)</Badge>;
       case "RETURNED_ON_TIME":
-        return <span className="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-semibold">Đã trả (Đúng hạn)</span>;
+        return <Badge variant="success">Đã trả (Đúng hạn)</Badge>;
       case "RETURNED_LATE":
-        return <span className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-semibold">Đã trả (Bị trễ hạn)</span>;
+        return <Badge variant="warning">Đã trả (Bị trễ hạn)</Badge>;
       default:
         return null;
     }
   };
 
-  // UI DÀNH CHO BACK-OFFICE (Không có thao tác trả sách ở đây)
   const renderActionButtons = (detailedState) => {
     if (detailedState.includes("RETURNED")) {
       return <span className="text-slate-400 text-sm italic">Lưu trữ</span>;
@@ -50,9 +76,8 @@ export default function AdminBorrowTab() {
     
     if (detailedState === "OVERDUE_ACTIVE") {
       return (
-        <div className="flex flex-col items-end gap-1">
-          <span className="text-xs font-bold text-rose-600 bg-rose-50 px-2 py-1 rounded">Thu phạt tại Quầy</span>
-          {/* Nút giả lập tính năng gửi nhắc nhở thủ công */}
+        <div className="flex flex-col items-end gap-1.5">
+          <span className="text-xs font-bold text-rose-600 bg-rose-50 px-2.5 py-1 rounded border border-rose-100">Thu phạt tại Quầy</span>
           <button className="text-xs text-slate-500 hover:text-blue-600 underline transition-colors">
             Gửi email nhắc nhở
           </button>
@@ -61,22 +86,11 @@ export default function AdminBorrowTab() {
     }
     
     return (
-      <span className="text-xs text-slate-500 font-medium bg-slate-100 px-2 py-1 rounded border border-slate-200">
+      <span className="text-xs text-slate-500 font-bold bg-slate-100 px-2.5 py-1.5 rounded border border-slate-200">
         Trả sách tại Quầy
       </span>
     );
   };
-
-  const displayData = useMemo(() => {
-    return borrows.filter((borrow) => {
-      const state = getDetailedState(borrow);
-      if (filter === "ALL") return true;
-      if (filter === "BORROWED") return state === "BORROWED_ACTIVE";
-      if (filter === "OVERDUE") return state === "OVERDUE_ACTIVE";
-      if (filter === "RETURNED") return state === "RETURNED_ON_TIME" || state === "RETURNED_LATE";
-      return true;
-    });
-  }, [borrows, filter]);
 
   const TABS = [
     { id: "ALL", label: "Tất cả báo cáo" }, 
@@ -85,77 +99,96 @@ export default function AdminBorrowTab() {
     { id: "RETURNED", label: "Lịch sử lưu trữ" }
   ];
 
+  const headers = [
+    "STT",
+    "Độc giả",
+    "Thông tin sách",
+    "Kỳ hạn",
+    "Đánh giá trạng thái",
+    "Hướng xử lý"
+  ];
+
   return (
     <div className="space-y-4 animate-in slide-in-from-left-4 duration-300">
       
-      <div className="flex gap-2 border-b border-slate-200 pb-2 overflow-x-auto custom-scrollbar">
-        {TABS.map(t => (
-          <button 
-            key={t.id} 
-            onClick={() => setFilter(t.id)}
-            className={`px-4 py-2 text-sm font-medium rounded-lg whitespace-nowrap transition-colors ${
-              filter === t.id ? "bg-slate-800 text-white shadow-sm" : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
+      <div className="flex flex-col md:flex-row justify-between gap-4 border-b border-slate-200 pb-4">
+        <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-2 md:pb-0">
+          {TABS.map(t => (
+            <button 
+              key={t.id} 
+              onClick={() => setFilter(t.id)}
+              className={`px-4 py-2 text-sm font-bold rounded-xl whitespace-nowrap transition-colors ${
+                filter === t.id 
+                  ? "bg-slate-800 text-white shadow-sm" 
+                  : "bg-white text-slate-500 border border-slate-200 hover:bg-slate-50"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="w-full md:w-80">
+          <Input
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Tìm theo Độc giả hoặc Tên sách..."
+            icon={Search}
+          />
+        </div>
       </div>
 
       {isLoading ? (
-        <Loading text="Đang tải báo cáo..." />
-      ) : displayData.length === 0 ? (
-        <Empty title="Trống" message="Không có phiếu mượn nào ở mục này." />
-      ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse whitespace-nowrap">
-              <thead>
-                <tr className="bg-slate-50 text-slate-500 text-xs uppercase border-b border-slate-100 tracking-wider">
-                  <th className="p-4 font-bold w-24">Mã Phiếu</th>
-                  <th className="p-4 font-bold">Độc giả</th>
-                  <th className="p-4 font-bold">Thông tin sách</th>
-                  <th className="p-4 font-bold">Kỳ hạn</th>
-                  <th className="p-4 font-bold">Đánh giá trạng thái</th>
-                  <th className="p-4 font-bold text-right">Hướng xử lý</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {displayData.map((borrow) => {
-                  const detailedState = getDetailedState(borrow); 
-                  
-                  return (
-                    <tr key={borrow.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="p-4 text-sm font-bold text-slate-700">#{borrow.id}</td>
-                      <td className="p-4 text-sm font-medium text-slate-800">{borrow.userName}</td>
-                      <td className="p-4 text-sm text-slate-600">{borrow.bookTitle}</td>
-                      
-                      <td className="p-4 flex flex-col gap-0.5">
-                        <span className={`text-sm font-bold ${detailedState === 'OVERDUE_ACTIVE' ? 'text-rose-600' : 'text-slate-700'}`}>
-                          Hạn: {borrow.dueDate ? new Date(borrow.dueDate).toLocaleDateString('vi-VN') : "Không có"}
-                        </span>
-                        
-                        {borrow.status === "RETURNED" && borrow.returnDate && (
-                          <span className={`text-xs font-medium ${detailedState === 'RETURNED_LATE' ? 'text-orange-600' : 'text-emerald-600'}`}>
-                            Trả ngày: {new Date(borrow.returnDate).toLocaleDateString('vi-VN')}
-                          </span>
-                        )}
-                      </td>
-                      
-                      <td className="p-4">
-                        {getStatusBadge(detailedState)}
-                      </td>
-                      
-                      <td className="p-4 text-right">
-                        {renderActionButtons(detailedState)}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+        <div className="py-20">
+          <Loading text="Đang tải báo cáo..." />
         </div>
+      ) : displayData.length === 0 ? (
+        <div className="py-10">
+          <Empty 
+            title="Trống" 
+            message="Không có phiếu mượn nào khớp với bộ lọc hiện tại." 
+            icon={<FileX size={48} strokeWidth={1.5} />} 
+          />
+        </div>
+      ) : (
+        <Table headers={headers}>
+          {displayData.map((borrow, index) => {
+            const detailedState = getDetailedState(borrow); 
+            
+            return (
+              <tr key={borrow.id} className="hover:bg-slate-50 transition-colors border-b border-slate-100">
+                
+                <td className="px-6 py-4 text-center">
+                  <p className="font-black text-slate-500">{index + 1}</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">#{borrow.id}</p>
+                </td>
+
+                <td className="px-6 py-4 text-sm font-bold text-slate-800">{borrow.userName}</td>
+                <td className="px-6 py-4 text-sm font-medium text-slate-600">{borrow.bookTitle}</td>
+                
+                <td className="px-6 py-4 flex flex-col gap-0.5">
+                  <span className={`text-sm font-bold ${detailedState === 'OVERDUE_ACTIVE' ? 'text-rose-600' : 'text-slate-700'}`}>
+                    Hạn: {borrow.dueDate ? new Date(borrow.dueDate).toLocaleDateString('vi-VN') : "Không có"}
+                  </span>
+                  
+                  {borrow.status === "RETURNED" && borrow.returnDate && (
+                    <span className={`text-xs font-bold ${detailedState === 'RETURNED_LATE' ? 'text-orange-600' : 'text-emerald-600'}`}>
+                      Trả ngày: {new Date(borrow.returnDate).toLocaleDateString('vi-VN')}
+                    </span>
+                  )}
+                </td>
+                
+                <td className="px-6 py-4">
+                  {getStatusBadge(detailedState)}
+                </td>
+                
+                <td className="px-6 py-4 text-right">
+                  {renderActionButtons(detailedState)}
+                </td>
+              </tr>
+            );
+          })}
+        </Table>
       )}
     </div>
   );

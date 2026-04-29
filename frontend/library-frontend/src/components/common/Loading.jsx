@@ -1,5 +1,3 @@
-// src/components/common/Loading.jsx
-
 function Loading({ text = "Đang tải dữ liệu...", fullScreen = false }) {
   return (
     <div 

@@ -17,7 +17,6 @@ function MainLayout({ children, role }) {
         
         <Topbar onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
 
-        {/* Thêm relative và custom scrollbar để cuộn mượt hơn */}
         <main className="flex-1 p-6 overflow-y-auto relative custom-scrollbar">
           {children}
         </main>

@@ -19,7 +19,7 @@ import java.util.List;
 public class ReservationScheduler {
 
     private final ReservationRepository reservationRepository;
-    private final ReservationService reservationService; // ✅ đổi
+    private final ReservationService reservationService;
     private final BookRepository bookRepository;
 
     @Scheduled(fixedRate = 150000)
@@ -43,6 +43,6 @@ public class ReservationScheduler {
     }
 
     private void processQueueForBook(Book book) {
-        reservationService.processQueue(book); // ✅ sửa
+        reservationService.processQueue(book);
     }
 }

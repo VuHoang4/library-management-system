@@ -24,36 +24,32 @@ public class BorrowController {
         this.borrowService = borrowService;
     }
 
-    // ================= LIBRARIAN =================
-
-  //  @PreAuthorize("hasAnyRole('THU_THU','ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'LIBRARIAN')")
     @GetMapping
     public ResponseEntity<List<BorrowResponse>> getAll() {
         return ResponseEntity.ok(borrowService.getAll());
     }
 
- //   @PreAuthorize("hasAnyRole('THU_THU','ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'LIBRARIAN')")
     @PostMapping
     public ResponseEntity<BorrowResponse> borrowBook(@Valid @RequestBody BorrowRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(borrowService.borrowBook(request));
     }
 
-  //  @PreAuthorize("hasAnyRole('THU_THU','ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'LIBRARIAN')")
     @PutMapping("/{id}/return")
     public ResponseEntity<BorrowResponse> returnBook(@PathVariable Long id) {
         return ResponseEntity.ok(borrowService.returnBook(id));
     }
 
-  //  @PreAuthorize("hasAnyRole('THU_THU','ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'LIBRARIAN')")
     @PutMapping("/{id}/renew")
     public ResponseEntity<BorrowResponse> renew(@PathVariable Long id) {
         return ResponseEntity.ok(borrowService.renewBook(id));
     }
 
-    // ================= READER =================
-
-  //  @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/me")
     public ResponseEntity<List<BorrowResponse>> getMyBorrows(Principal principal) {
         return ResponseEntity.ok(

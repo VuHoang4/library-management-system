@@ -26,10 +26,8 @@ public class Borrow {
 
     private LocalDate returnDate;
 
-    // Gán mặc định = 0 ngay từ đầu
     private int renewCount = 0;
 
-    //  THÊM: Ghi chú tình trạng sách lúc trả
     @Column(columnDefinition = "TEXT")
     private String returnNote;
 
@@ -37,17 +35,14 @@ public class Borrow {
     @Column(nullable = false)
     private BorrowStatus status = BorrowStatus.BORROWED;
 
-    //  THÊM: fetch = FetchType.LAZY
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    //  THÊM: fetch = FetchType.LAZY
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "book_id", nullable = false)
     private Book book;
 
-    //  THÊM: updatable = false
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
@@ -57,8 +52,7 @@ public class Borrow {
 
     @PrePersist
     public void prePersist(){
-        // CHÚ Ý: Đã xóa logic cộng 7 ngày ở đây.
-        // dueDate bắt buộc phải được Service tính toán và truyền vào trước khi gọi save()!
+
         if (borrowDate == null) {
             borrowDate = LocalDate.now();
         }
